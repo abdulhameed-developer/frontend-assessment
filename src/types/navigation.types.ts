@@ -1,34 +1,34 @@
-// File: src/types/navigation.types.ts
-export interface NavItem {
-  id: string;
-  label: string;
-  href: string;
-  isActive?: boolean;
-  badge?: number;
-}
-
-export interface TeamMember {
-  id: string;
-  name: string;
-  avatar?: string;
-  initial: string;
-  unreadCount?: number;
-}
-
-export interface ChatMessage {
-  id: string;
-  sender: string;
-  content: string;
-  timestamp: string;
-  isUser?: boolean;
-}
-
-export interface Contact {
-  id: string;
-  firstName: string;
-  lastName: string;
+// File: src/types/index.ts
+export interface User {
+  id: number;
   email: string;
-  phone: string;
-  labels?: string[];
-  notes?: string[];
+  first_name: string;
+  last_name: string;
+  avatar: string;
+}
+
+export interface Todo {
+  id: number;
+  title: string;
+  completed: boolean;
+}
+
+export interface Post {
+  id: number;
+  title: string;
+  body: string;
+}
+
+export interface Comment {
+  id: number;
+  name: string;
+  body: string;
+  email: string;
+}
+
+export interface DashboardStats {
+  totalUsers: number;
+  totalTodos: number;
+  totalPosts: number;
+  unreadMessages: number;
 }

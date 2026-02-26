@@ -1,7 +1,7 @@
 // File: src/components/ui/SkeletonNavItem.tsx
 import React from 'react';
-import { SkeletonBlock } from './SkeletonBlock';
-import { SkeletonText } from './SkeletonText';
+import SkeletonBlock  from './SkeletonBlock';
+import SkeletonText from './SkeletonText';
 
 export const SkeletonNavItem: React.FC = () => {
   return (

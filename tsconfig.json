@@ -1,12 +1,9 @@
-// File: tsconfig.json
 {
   "compilerOptions": {
+    "baseUrl": ".",
     "target": "es5",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "forceConsistentCasingInFileNames": true,
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -18,30 +15,17 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
+    "plugins": [{ "name": "next" }],
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@/ui/*": [
-        "./src/components/ui/*"
-      ],
-      "@/navigation/*": [
-        "./src/components/navigation/*"
-      ],
-      "@/user/*": [
-        "./src/components/user/*"
-      ],
-      "@/layout/*": [
-        "./src/components/layout/*"
-      ],
-      "@/dashboard/*": [
-        "./src/components/dashboard/*"
-      ]
+      "@/*": ["./src/*"],
+
+      "@/ui": ["./src/components/ui/index.ts"],
+      "@/ui/*": ["./src/components/ui/*"],
+
+      "@/navigation/*": ["./src/components/navigation/*"],
+      "@/user/*": ["./src/components/user/*"],
+      "@/layout/*": ["./src/components/layout/*"],
+      "@/dashboard/*": ["./src/components/dashboard/*"]
     }
   },
   "include": [
@@ -51,7 +35,5 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }

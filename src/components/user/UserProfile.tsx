@@ -1,6 +1,6 @@
 // File: src/components/user/UserProfile.tsx
 import React from 'react';
-import { classNames } from '@/utils/classNames';
+// import { classNames } from '@/utils/classNames';
 
 interface UserProfileProps {
   name: string;
@@ -11,7 +11,7 @@ interface UserProfileProps {
 export const UserProfile: React.FC<UserProfileProps> = ({ 
   name, 
   initial, 
-  avatar 
+  // avatar 
 }) => {
   return (
     <div className="flex items-center gap-3">

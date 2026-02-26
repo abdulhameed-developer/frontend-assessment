@@ -1,6 +1,6 @@
 // File: src/components/ui/SkeletonBlock.tsx
-import React from 'react';
-import { classNames } from '@/utils/classNames';
+import React from "react";
+import { classNames } from "@/utils/classNames";
 
 interface SkeletonBlockProps {
   width?: string;
@@ -8,19 +8,21 @@ interface SkeletonBlockProps {
   className?: string;
 }
 
-export const SkeletonBlock: React.FC<SkeletonBlockProps> = ({ 
-  width = 'w-full', 
-  height = 'h-4',
-  className 
+const SkeletonBlock: React.FC<SkeletonBlockProps> = ({
+  width = "w-full",
+  height = "h-4",
+  className,
 }) => {
   return (
     <div
       className={classNames(
-        'bg-[#EFF2F2] animate-pulse rounded-[5.61px]',
+        "bg-[#EFF2F2] animate-pulse rounded-[4px]",
         width,
         height,
-        className
+        className,
       )}
     />
   );
 };
+
+export default SkeletonBlock;
