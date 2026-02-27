@@ -1,5 +1,5 @@
 // File: src/components/ui/SkeletonAvatar.tsx
-import { classNames } from "@/utils/classNames";
+import { defaultConfig } from "next/dist/server/config-shared";
 import React from "react";
 
 interface SkeletonAvatarProps {
@@ -9,17 +9,12 @@ interface SkeletonAvatarProps {
 
 const SkeletonAvatar: React.FC<SkeletonAvatarProps> = ({
   size = "w-8 h-8",
-  className,
+  className = "",
 }) => {
   return (
     <div
-      className={classNames(
-        "bg-[#EFF2F2] animate-pulse rounded-full",
-        size,
-        className,
-      )}
+      className={`bg-gray-200 animate-pulse rounded-full ${size} ${className}`}
     />
   );
 };
-
 export default SkeletonAvatar;

@@ -3,7 +3,7 @@ import React from 'react';
 import SkeletonBlock  from './SkeletonBlock';
 import SkeletonText from './SkeletonText';
 
-export const SkeletonNavItem: React.FC = () => {
+const SkeletonNavItem: React.FC = () => {
   return (
     <div className="flex items-center justify-between py-2">
       <SkeletonText lines={1} className="w-24" />
@@ -11,3 +11,5 @@ export const SkeletonNavItem: React.FC = () => {
     </div>
   );
 };
+
+export default SkeletonNavItem;

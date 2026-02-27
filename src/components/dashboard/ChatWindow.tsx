@@ -1,146 +1,150 @@
 // File: src/components/dashboard/ChatWindow.tsx
 "use client";
 
-import React, { useState } from "react";
-
-interface Message {
-  id: number;
-  sender: string;
-  content: string;
-  time: string;
-  isUser: boolean;
-}
-
-const messages: Message[] = [
-  {
-    id: 1,
-    sender: "Olivia Mckinsey",
-    content:
-      "Hi, I recently joined Fit4Life and I'm trying to access my workout plan, but I can't login. Can you help?",
-    time: "23:08",
-    isUser: false,
-  },
-  {
-    id: 2,
-    sender: "Michael",
-    content:
-      "Hello Olivia 👋 I'm Michael, your AI customer support assistant. Let's fix this quickly. Could you confirm the email address?",
-    time: "23:08",
-    isUser: true,
-  },
-  {
-    id: 3,
-    sender: "Olivia Mckinsey",
-    content: "Yes, it's olivia.Mckinsey@gmail.com",
-    time: "23:16",
-    isUser: false,
-  },
-  {
-    id: 4,
-    sender: "Michael",
-    content:
-      "Thanks! Looks like your reset wasn't completed. I've sent a new link - please check your inbox.",
-    time: "23:16",
-    isUser: true,
-  },
-  {
-    id: 5,
-    sender: "Olivia Mckinsey",
-    content: "Don't I'm logged in. Thanks!",
-    time: "23:20",
-    isUser: false,
-  },
-  {
-    id: 6,
-    sender: "Michael",
-    content:
-      'Perfect! Your plan is ready under "My Programs". Since you\'re starting out, I suggest our Premium Guide - it boosts results and is 20% off here 👇 www.Fit4Life.com/Premium',
-    time: "23:20",
-    isUser: true,
-  },
-  {
-    id: 7,
-    sender: "Olivia Mckinsey",
-    content: "Oh my god 😭 I'll try it ASAP, thank you so much!",
-    time: "23:23",
-    isUser: false,
-  },
-];
+import React, { useState, useRef, useEffect } from "react";
+import { useChat } from "@/context/ChatContext";
+import { useAuth } from "@/context/AuthContext";
 
 export const ChatWindow: React.FC = () => {
+  const { selectedChat, messages, sendMessage } = useChat();
+  const { user } = useAuth();
   const [newMessage, setNewMessage] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (messagesEndRef.current && selectedChat) {
+      messagesEndRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }
+  }, [messages, selectedChat]);
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMessage.trim() || !selectedChat) return;
+    sendMessage(newMessage);
+    setNewMessage("");
+  };
 
   return (
-    <div className="flex flex-col flex-1 bg-white">
-      {/* Header */}
-      <div className="px-6 py-4 border-b border-[#E5E7EB]">
-        <h2 className="text-base font-semibold text-[#111827]">
-          Olivia McKinsey
-        </h2>
-        <p className="text-xs text-[#6B7280]">28 August 2025</p>
-      </div>
-
-      {/* Messages */}
-      <div className="flex-1 p-6 space-y-4 overflow-y-auto">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex gap-3 ${message.isUser ? "flex-row-reverse" : ""}`}
-          >
-            {!message.isUser && (
-              <div className="w-8 h-8 rounded-full bg-[#2563EB] flex items-center justify-center text-white text-xs font-semibold shrink-0">
-                OM
-              </div>
-            )}
-            <div
-              className={`flex flex-col ${message.isUser ? "items-end" : ""}`}
+    <div className="flex flex-col w-full h-full overflow-hidden bg-white">
+      {!selectedChat ? (
+        /* Empty State - No Chat Selected */
+        <div className="flex items-center justify-center w-full h-full">
+          <div className="px-4 text-center">
+            <svg
+              className="w-16 h-16 mx-auto mb-4 text-gray-300"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <div className="flex items-center gap-2 mb-1">
-                {!message.isUser && (
-                  <span className="text-xs font-medium text-[#111827]">
-                    {message.sender}
-                  </span>
-                )}
-                <span className="text-xs text-[#6B7280]">{message.time}</span>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1}
+                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+              />
+            </svg>
+            <h3 className="text-base font-medium text-gray-700">
+              Select a chat
+            </h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Choose a conversation to start messaging
+            </p>
+          </div>
+        </div>
+      ) : (
+        /* Chat Selected - Show Messages */
+        <>
+          {/* Chat Header */}
+          <div className="flex-shrink-0 px-4 py-3 bg-white border-b border-gray-200">
+            <div className="flex items-center gap-3">
+              <div className="relative flex-shrink-0">
+                <div className="flex items-center justify-center w-10 h-10 overflow-hidden font-semibold text-white bg-blue-500 rounded-full">
+                  {selectedChat.avatar ? (
+                    <img
+                      src={selectedChat.avatar}
+                      alt={selectedChat.name}
+                      className="object-cover w-full h-full"
+                    />
+                  ) : (
+                    selectedChat.initials
+                  )}
+                </div>
+                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></span>
               </div>
-              <div
-                className={`max-w-[70%] p-3 rounded-[8px] text-sm ${
-                  message.isUser
-                    ? "bg-[#2563EB] text-white"
-                    : "bg-[#F3F4F6] text-[#111827]"
-                }`}
-              >
-                {message.content}
+              <div className="flex-1 min-w-0">
+                <h2 className="text-sm font-semibold text-gray-900 truncate">
+                  {selectedChat.name}
+                </h2>
+                <p className="text-xs text-gray-500 truncate">Online</p>
               </div>
             </div>
           </div>
-        ))}
-      </div>
 
-      {/* Input */}
-      <div className="p-4 border-t border-[#E5E7EB]">
-        <div className="flex items-center gap-3">
-          <input
-            type="text"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Type something..."
-            className="flex-1 px-4 py-2.5 bg-[#F9FAFB] rounded-[6px] text-sm text-[#111827] placeholder-[#9CA3AF] outline-none"
-          />
-          <button className="w-9 h-9 bg-[#2563EB] rounded-[6px] flex items-center justify-center text-white hover:bg-[#1D4ED8] transition-colors">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
+          {/* Messages */}
+          <div className="flex-1 p-4 space-y-4 overflow-y-auto hide-scrollbar">
+            {messages.map((message, index) => {
+              const isUser = message.senderId === user?.id;
+
+              return (
+                <div
+                  key={message.id}
+                  className={`flex gap-2 ${isUser ? "justify-end" : ""}`}
+                >
+                  {!isUser && (
+                    <div className="flex items-center justify-center flex-shrink-0 w-6 h-6 overflow-hidden text-xs font-semibold text-white bg-blue-500 rounded-full">
+                      {selectedChat.initials}
+                    </div>
+                  )}
+                  <div className={`max-w-[70%] ${isUser ? "items-end" : ""}`}>
+                    <div
+                      className={`p-2 rounded-lg text-sm break-words ${
+                        isUser
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-100 text-gray-900"
+                      }`}
+                    >
+                      {message.content}
+                    </div>
+                    <div
+                      className={`flex items-center gap-1 mt-1 text-xs text-gray-400 ${isUser ? "justify-end" : ""}`}
+                    >
+                      <span>{message.timestamp}</span>
+                      {isUser && message.status === "sent" && <span>✓</span>}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Message Input */}
+          <div className="flex-shrink-0 p-3 bg-white border-t border-gray-200">
+            <form
+              onSubmit={handleSendMessage}
+              className="flex items-center gap-2"
             >
-              <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
-            </svg>
-          </button>
-        </div>
-      </div>
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Type a message..."
+                className="flex-1 px-3 py-2 text-sm text-gray-900 placeholder-gray-500 bg-gray-100 rounded-lg outline-none focus:ring-1 focus:ring-blue-500"
+              />
+              <button
+                type="submit"
+                disabled={!newMessage.trim()}
+                className="flex-shrink-0 px-3 py-2 text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              >
+                Send
+              </button>
+            </form>
+          </div>
+        </>
+      )}
     </div>
   );
 };

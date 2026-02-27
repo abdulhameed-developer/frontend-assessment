@@ -1,56 +1,162 @@
 /* File: src/app/globals.css */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600&display=swap');
+@import 'tailwindcss';
 
-@import "tailwindcss";
-
-:root {
-  --foreground-rgb: 17, 24, 39;
-  --background-rgb: 255, 255, 255;
+@theme {
+  --color-primary: #2563eb;
+  --color-primary-dark: #1d4ed8;
+  --color-secondary: #6b7280;
+  --color-border: #e5e7eb;
+  --color-background: #f9fafb;
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-rgb));
+@layer base {
+  /* Custom font classes with exact specifications */
+  .font-poppins-bold {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 12.63px;
+    line-height: 100%;
+    letter-spacing: 0%;
+  }
+
+  .font-sf-compact-medium {
+    font-family: 'SF Compact', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 556;
+    font-size: 9.82px;
+    line-height: 100%;
+    letter-spacing: 0%;
+  }
+
+  .font-sf-compact-regular {
+    font-family: 'SF Compact', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 457;
+    font-size: 10.73px;
+    line-height: 100%;
+    letter-spacing: 0%;
+  }
+
+  .font-sf-compact-number {
+    font-family: 'SF Compact', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 457;
+    font-size: 8.42px;
+    line-height: 100%;
+    letter-spacing: 0%;
+    text-align: center;
+  }
+
+  .font-sf-compact-bold {
+    font-family: 'SF Compact', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 790;
+    font-size: 12.63px;
+    line-height: 100%;
+    letter-spacing: 0%;
+  }
+
+  .font-sf-compact-channel {
+    font-family: 'SF Compact', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 556;
+    font-size: 9.82px;
+    line-height: 100%;
+    letter-spacing: 0%;
+  }
+
+  .font-sf-compact-channel-text {
+    font-family: 'SF Compact', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 457;
+    font-size: 9.82px;
+    line-height: 100%;
+    letter-spacing: 0%;
+  }
+
+  .font-inter-semibold {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 9.82px;
+    line-height: 100%;
+    letter-spacing: 0%;
+  }
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
 }
 
-::-webkit-scrollbar-track {
-  background: #F3F4F6;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #D1D5DB;
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #9CA3AF;
-}
-
-.skeleton-text {
-  height: 3rem;
-  background-color: #EFF2F2;
-  animation: pulse 1s infinite;
-  border-radius: 0.5rem;
-}
-
-.skeleton-text:last-child {
-  width: 80%;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes pulse {
-  0% {
-    opacity: 0.8;
+  0%, 100% {
+    opacity: 1;
   }
   50% {
-    opacity: 0.6;
+    opacity: .5;
   }
-  100% {
-    opacity: 0.8;
+}
+
+.animate-slideIn {
+  animation: slideIn 0.3s ease-out;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Hide scrollbar but keep functionality - for all browsers */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;      /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;              /* Chrome, Safari, Opera */
+  width: 0;
+  height: 0;
+}
+
+/* Ensure full height and no margins */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Fix for chat window movement */
+.flex-1 {
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Mobile styles */
+@media (max-width: 1023px) {
+  .lg\:border-r {
+    border-right: none;
+  }
+  
+  .lg\:border-l {
+    border-left: none;
+  }
+  
+  /* Mobile full width */
+  .mobile-full {
+    width: 100% !important;
+    max-width: 100% !important;
   }
 }
