@@ -1,11 +1,11 @@
 // File: src/data/dummyData.ts
 import {
-  User,
-  TeamMember,
   Chat,
   Contact,
   DashboardStats,
   Message,
+  TeamMember,
+  User,
 } from "@/types";
 
 // Current Logged In User
@@ -174,6 +174,7 @@ export const users: User[] = [
   },
 ];
 
+// This creates TeamMember objects that match the TeamMember interface perfectly
 export const teamMembers: TeamMember[] = users.map((user) => ({
   id: user.id,
   userId: user.id,

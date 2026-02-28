@@ -128,5 +128,22 @@ export interface Activity {
   type: "message" | "note" | "call" | "email" | "meeting";
   content: string;
   timestamp: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
+}
+
+// Navigation types
+export interface NavItem {
+  id: string;
+  label: string;
+  href: string;
+  isActive?: boolean;
+  icon?: React.ReactNode;
+  badge?: number;
+}
+
+export interface NavItemSimple {
+  id: string;
+  label: string;
+  href: string;
+  isActive?: boolean;
 }

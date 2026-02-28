@@ -3,10 +3,21 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useChat } from "@/context/ChatContext";
+import Image from "next/image";
 import React, { useEffect, useRef, useState } from "react";
 
 interface ChatWindowProps {
   onBack?: () => void;
+}
+
+// Define Participant interface
+interface Participant {
+  id: string;
+  name?: string;
+  firstName?: string;
+  lastName?: string;
+  avatar?: string;
+  status?: "online" | "offline" | "away";
 }
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
@@ -63,8 +74,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
     );
   }
 
+  // FIXED: Properly typed participant parameter
   const otherParticipant = selectedChat.participants.find(
-    (p) => p.id !== user?.id,
+    (participant: Participant): boolean => participant.id !== user?.id,
   );
 
   return (
@@ -96,10 +108,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
           <div className="relative flex-shrink-0">
             <div className="flex items-center justify-center w-8 h-8 overflow-hidden text-xs font-semibold text-white bg-blue-500 rounded-full">
               {otherParticipant?.avatar ? (
-                <img
+                <Image
                   src={otherParticipant.avatar}
                   alt={selectedChat.name}
-                  className="object-cover w-full h-full"
+                  width={32}
+                  height={32}
+                  className="object-cover w-full h-full rounded-full"
                 />
               ) : (
                 selectedChat.initials
@@ -118,7 +132,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
 
       {/* Messages */}
       <div className="flex-1 p-3 space-y-3 overflow-y-auto scrollbar-thin">
-        {messages.map((message, index) => {
+        {messages.map((message) => {
           const isUser = message.senderId === user?.id;
 
           return (

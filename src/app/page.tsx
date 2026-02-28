@@ -40,7 +40,8 @@ export default function Home() {
   // When a chat is selected on mobile, switch to chat view
   useEffect(() => {
     if (selectedChat) {
-      setMobileView("chat");
+      // Defer setState to avoid synchronous update in effect
+      queueMicrotask(() => setMobileView("chat"));
     }
   }, [selectedChat]);
 

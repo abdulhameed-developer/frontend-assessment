@@ -3,7 +3,38 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useChat } from "@/context/ChatContext";
+import Image from "next/image";
 import React, { useMemo, useState } from "react";
+
+// Define interfaces for the component
+interface Participant {
+  id: string;
+  name?: string;
+  firstName?: string;
+  lastName?: string;
+  avatar?: string;
+  status?: "online" | "offline" | "away";
+}
+
+interface LastMessage {
+  senderId: string;
+  content: string;
+  attachments?: Array<{
+    name: string;
+    url: string;
+    size: number;
+    type: string;
+  }>;
+}
+
+interface Chat {
+  id: string;
+  name: string;
+  participants: Participant[];
+  unreadCount: number;
+  timestamp: string;
+  lastMessage: LastMessage;
+}
 
 export const ChatList: React.FC = () => {
   const {
@@ -25,8 +56,8 @@ export const ChatList: React.FC = () => {
     searchChats(e.target.value);
   };
 
-  const getAvatarColor = (name: string) => {
-    const colors = [
+  const getAvatarColor = (name: string): string => {
+    const colors: string[] = [
       "bg-red-500",
       "bg-blue-500",
       "bg-green-500",
@@ -40,17 +71,20 @@ export const ChatList: React.FC = () => {
     return colors[index];
   };
 
-  const getInitials = (name: string) => {
+  const getInitials = (name: string): string => {
     return name
       .split(" ")
-      .map((n) => n[0])
+      .map((n: string) => n[0])
       .join("")
       .substring(0, 2)
       .toUpperCase();
   };
 
-  const unreadCount = useMemo(() => {
-    return filteredChats.reduce((acc, chat) => acc + chat.unreadCount, 0);
+  const unreadCount = useMemo((): number => {
+    return filteredChats.reduce(
+      (acc: number, chat: Chat) => acc + chat.unreadCount,
+      0,
+    );
   }, [filteredChats]);
 
   return (
@@ -120,6 +154,7 @@ export const ChatList: React.FC = () => {
             <button
               onClick={() => setShowFilters(!showFilters)}
               className="p-2 rounded-lg hover:bg-gray-100"
+              aria-label="Toggle filters"
             >
               <svg
                 className="w-4 h-4 text-gray-600"
@@ -192,12 +227,16 @@ export const ChatList: React.FC = () => {
             <p className="text-sm">No chats found</p>
           </div>
         ) : (
-          filteredChats.map((chat) => {
+          filteredChats.map((chat: Chat) => {
             const isSelected = selectedChat?.id === chat.id;
-            const otherParticipant = chat.participants.find(
-              (p) => p.id !== user?.id,
+
+            // FIXED: Properly typed participant with interface
+            const otherParticipant = chat.participants?.find(
+              (participant: Participant): boolean =>
+                participant.id !== user?.id,
             );
-            const avatarColor = getAvatarColor(chat.name);
+
+            const avatarColor = getAvatarColor(chat.name || "");
 
             return (
               <div
@@ -209,16 +248,18 @@ export const ChatList: React.FC = () => {
               >
                 <div className="relative">
                   <div
-                    className={`w-12 h-12 rounded-full ${avatarColor} flex items-center justify-center text-white font-semibold`}
+                    className={`w-12 h-12 rounded-full ${avatarColor} flex items-center justify-center text-white font-semibold overflow-hidden`}
                   >
                     {otherParticipant?.avatar ? (
-                      <img
+                      <Image
                         src={otherParticipant.avatar}
-                        alt={chat.name}
-                        className="object-cover w-full h-full rounded-full"
+                        alt={chat.name || "User avatar"}
+                        width={48}
+                        height={48}
+                        className="object-cover rounded-full"
                       />
                     ) : (
-                      getInitials(chat.name)
+                      <span>{getInitials(chat.name || "Unknown")}</span>
                     )}
                   </div>
                   {otherParticipant?.status === "online" && (
@@ -233,34 +274,37 @@ export const ChatList: React.FC = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
                     <h3 className="text-sm font-medium text-gray-900 truncate">
-                      {chat.name}
+                      {chat.name || "Unknown"}
                     </h3>
                     <span className="text-xs text-gray-500">
-                      {chat.timestamp}
+                      {chat.timestamp || ""}
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 truncate">
-                    {chat.lastMessage.senderId === user?.id ? "You: " : ""}
-                    {chat.lastMessage.content}
+                    {chat.lastMessage?.senderId === user?.id ? "You: " : ""}
+                    {chat.lastMessage?.content || ""}
                   </p>
-                  {chat.lastMessage.attachments && (
-                    <div className="flex items-center gap-1 mt-1">
-                      <svg
-                        className="w-3 h-3 text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
-                        />
-                      </svg>
-                      <span className="text-xs text-gray-400">Attachment</span>
-                    </div>
-                  )}
+                  {chat.lastMessage?.attachments &&
+                    chat.lastMessage.attachments.length > 0 && (
+                      <div className="flex items-center gap-1 mt-1">
+                        <svg
+                          className="w-3 h-3 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+                          />
+                        </svg>
+                        <span className="text-xs text-gray-400">
+                          Attachment
+                        </span>
+                      </div>
+                    )}
                 </div>
               </div>
             );
@@ -270,7 +314,10 @@ export const ChatList: React.FC = () => {
 
       {/* New Chat Button */}
       <div className="p-4 border-t border-gray-200">
-        <button className="w-full bg-blue-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
+        <button
+          className="w-full bg-blue-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+          aria-label="Start new chat"
+        >
           <svg
             className="w-4 h-4"
             fill="none"

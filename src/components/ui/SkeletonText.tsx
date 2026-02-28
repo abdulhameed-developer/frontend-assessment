@@ -22,4 +22,5 @@ const SkeletonText: React.FC<SkeletonTextProps> = ({
     </div>
   );
 };
+
 export default SkeletonText;

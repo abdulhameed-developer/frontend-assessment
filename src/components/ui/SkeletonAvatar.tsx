@@ -1,5 +1,4 @@
 // File: src/components/ui/SkeletonAvatar.tsx
-import { defaultConfig } from "next/dist/server/config-shared";
 import React from "react";
 
 interface SkeletonAvatarProps {
@@ -17,4 +16,5 @@ const SkeletonAvatar: React.FC<SkeletonAvatarProps> = ({
     />
   );
 };
+
 export default SkeletonAvatar;

@@ -4,8 +4,8 @@
 import React from 'react';
 import { useDelayedRender } from '@/hooks/useDelayedRender';
 import { SkeletonBlock } from '@/ui/SkeletonBlock';
-import { SkeletonText } from '@/ui/SkeletonText';
-import { SkeletonAvatar } from '@/ui/SkeletonAvatar';
+import SkeletonText from '@/ui/SkeletonText';
+import SkeletonAvatar from '@/ui/SkeletonAvatar';
 import { classNames } from '@/utils/classNames';
 
 interface MessageProps {
@@ -64,7 +64,7 @@ export const DashboardContainer: React.FC = () => {
           <SkeletonBlock width="w-full" height="h-[32px]" className="mb-4" />
           <SkeletonBlock width="w-full" height="h-[32px]" className="mb-4" />
           <SkeletonBlock width="w-full" height="h-[32px]" className="mb-4" />
-          <div className="space-y-3 mt-6">
+          <div className="mt-6 space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="flex items-center gap-3">
                 <SkeletonAvatar size="w-8 h-8" />
@@ -75,7 +75,7 @@ export const DashboardContainer: React.FC = () => {
         </div>
 
         {/* Main Content Skeleton */}
-        <div className="flex-1 flex">
+        <div className="flex flex-1">
           <div className="w-100 border-r border-[#D8DEE4] p-6">
             <SkeletonBlock width="w-full" height="h-[48px]" className="mb-4" />
             <div className="space-y-4">
@@ -126,7 +126,7 @@ export const DashboardContainer: React.FC = () => {
               <span className="text-[12.63px] font-['Inter'] text-[#1A1A1A]">All</span>
               <span className="text-[9.82px] font-['Inter'] text-[#90909B]">28</span>
             </div>
-            <div className="flex items-center justify-between py-2 px-3">
+            <div className="flex items-center justify-between px-3 py-2">
               <span className="text-[12.63px] font-['Inter'] text-[#1A1A1A]">Unassigned</span>
               <span className="text-[9.82px] font-['Inter'] text-[#FE3265] font-medium">5</span>
             </div>
@@ -134,18 +134,18 @@ export const DashboardContainer: React.FC = () => {
 
           <h3 className="text-[12.63px] font-['Inter'] font-medium text-[#90909B] mt-6 mb-3">Teams</h3>
           <div className="space-y-1">
-            <div className="flex items-center justify-between py-2 px-3">
+            <div className="flex items-center justify-between px-3 py-2">
               <span className="text-[12.63px] font-['Inter'] text-[#1A1A1A]">Sales</span>
               <span className="text-[9.82px] font-['Inter'] text-[#90909B]">7</span>
             </div>
-            <div className="flex items-center justify-between py-2 px-3">
+            <div className="flex items-center justify-between px-3 py-2">
               <span className="text-[12.63px] font-['Inter'] text-[#1A1A1A]">Customer Support</span>
               <span className="text-[9.82px] font-['Inter'] text-[#90909B]">16</span>
             </div>
           </div>
 
           <h3 className="text-[12.63px] font-['Inter'] font-medium text-[#90909B] mt-6 mb-3">Users</h3>
-          <div className="space-y-1 max-h-75 overflow-y-auto">
+          <div className="space-y-1 overflow-y-auto max-h-75">
             {['Sarah Williams', 'Michael Johnson', 'Emily Davis', 'Christopher Miller', 'Amanda Garcia'].map((user, i) => (
               <div key={user} className="flex items-center justify-between py-2 px-3 hover:bg-[#EFF2F2] rounded-[5.61px] cursor-pointer">
                 <div className="flex items-center gap-2">
@@ -206,7 +206,8 @@ export const DashboardContainer: React.FC = () => {
               onClick={() => setSelectedChat(chat.name.toLowerCase().replace(' ', ''))}
               className={classNames(
                 'p-4 border-b border-[#D8DEE4] cursor-pointer transition-colors',
-                chat.active ? 'bg-[#EFF2F2]' : 'hover:bg-[#EFF2F2]'
+                chat.active ? 'bg-[#EFF2F2]' : 'hover:bg-[#EFF2F2]',
+                selectedChat === chat.name.toLowerCase().replace(' ', '') ? 'bg-[#EFF2F2]' : 'hover:bg-[#EFF2F2]'
               )}
             >
               <div className="flex items-start gap-3">
@@ -227,13 +228,13 @@ export const DashboardContainer: React.FC = () => {
       </div>
 
       {/* Chat Window */}
-      <div className="flex-1 bg-white flex flex-col">
+      <div className="flex flex-col flex-1 bg-white">
         <div className="p-6 border-b border-[#D8DEE4]">
           <h2 className="text-[16.84px] font-['Inter'] font-semibold text-[#1A1A1A]">Olivia McKinsey</h2>
           <p className="text-[11.23px] font-['Inter'] text-[#90909B]">28 August 2025</p>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 p-6 overflow-y-auto">
           {messages.map((msg, i) => (
             <Message key={i} {...msg} />
           ))}
@@ -246,7 +247,10 @@ export const DashboardContainer: React.FC = () => {
               placeholder="Type something..."
               className="flex-1 px-4 py-3 bg-[#EFF2F2] rounded-[11.23px] text-[12.63px] font-['Inter'] text-[#1A1A1A] placeholder-[#90909B] outline-none"
             />
-            <button className="w-10 h-10 bg-[#007AEC] rounded-[11.23px] flex items-center justify-center text-white hover:bg-[#0056A3] transition-colors">
+            <button
+              aria-label="Send message"
+              className="w-10 h-10 bg-[#007AEC] rounded-[11.23px] flex items-center justify-center text-white hover:bg-[#0056A3] transition-colors"
+            >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
               </svg>

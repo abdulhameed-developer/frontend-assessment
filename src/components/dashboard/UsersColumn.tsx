@@ -3,7 +3,36 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useChat } from "@/context/ChatContext";
+import { User } from "@/types";
+import Image from "next/image";
 import React, { useEffect, useRef, useState } from "react";
+
+// Define interfaces for the component
+interface Participant extends Partial<User> {
+  id: string;
+  status?: "online" | "offline" | "away";
+}
+
+interface LastMessage {
+  senderId: string;
+  content: string;
+  timestamp?: string;
+  attachments?: Array<{
+    name: string;
+    url: string;
+    size: number;
+    type: string;
+  }>;
+}
+
+interface ChatItem {
+  id: string;
+  name: string;
+  participants: Participant[];
+  unreadCount: number;
+  timestamp: string;
+  lastMessage: LastMessage;
+}
 
 export const UsersColumn: React.FC = () => {
   const { user } = useAuth();
@@ -61,17 +90,17 @@ export const UsersColumn: React.FC = () => {
     setSortOpen(false);
   };
 
-  const getInitials = (name: string) => {
+  const getInitials = (name: string): string => {
     return name
       .split(" ")
-      .map((n) => n[0])
+      .map((n: string) => n[0])
       .join("")
       .substring(0, 2)
       .toUpperCase();
   };
 
-  const getAvatarColor = (name: string) => {
-    const colors = [
+  const getAvatarColor = (name: string): string => {
+    const colors: string[] = [
       "bg-blue-500",
       "bg-purple-500",
       "bg-pink-500",
@@ -217,11 +246,14 @@ export const UsersColumn: React.FC = () => {
 
       {/* Chat List */}
       <div className="flex-1 overflow-y-auto scrollbar-thin">
-        {filteredChats.map((chat) => {
+        {filteredChats.map((chat: ChatItem) => {
           const isActive = selectedChat?.id === chat.id;
+
+          // FIXED: Properly typed participant parameter
           const otherParticipant = chat.participants.find(
-            (p) => p.id !== user?.id,
+            (participant: Participant): boolean => participant.id !== user?.id,
           );
+
           const initials = getInitials(chat.name);
           const avatarColor = getAvatarColor(chat.name);
 
@@ -234,16 +266,22 @@ export const UsersColumn: React.FC = () => {
               }`}
             >
               <div
-                className={`w-8 h-8 rounded-full ${avatarColor} flex items-center justify-center text-white text-[11px] font-medium flex-shrink-0`}
+                className={`w-8 h-8 rounded-full ${avatarColor} flex items-center justify-center text-white text-[11px] font-medium flex-shrink-0 overflow-hidden`}
               >
                 {otherParticipant?.avatar ? (
-                  <img
+                  <Image
                     src={otherParticipant.avatar}
                     alt={chat.name}
+                    width={32}
+                    height={32}
                     className="object-cover w-full h-full rounded-full"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src =
+                        "/default-avatar.png";
+                    }}
                   />
                 ) : (
-                  initials
+                  <span className="text-[11px]">{initials}</span>
                 )}
               </div>
               <div className="flex-1 min-w-0">
@@ -256,7 +294,7 @@ export const UsersColumn: React.FC = () => {
                   </span>
                 </div>
                 <p className="text-[10px] text-gray-500 truncate">
-                  {chat.lastMessage.content}
+                  {chat.lastMessage?.content || ""}
                 </p>
               </div>
               {chat.unreadCount > 0 && (

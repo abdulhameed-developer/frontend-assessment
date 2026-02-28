@@ -7,33 +7,71 @@ import { useChat } from "@/context/ChatContext";
 import { useAuth } from "@/context/AuthContext";
 import { contact as dummyContact } from "@/data/dummyData";
 
+// Define proper interfaces
+interface Author {
+  id: string;
+  name: string;
+  avatar?: string;
+}
+
+interface Note {
+  id: string;
+  userId: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  author: Author;
+}
+
+interface Contact {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  company: string;
+  position: string;
+  labels: string[];
+}
+
+type TabType = "details" | "activity" | "files";
+
 export const DetailsPanel: React.FC = () => {
   const { selectedContact } = useContact();
   const { selectedChat } = useChat();
   const { user } = useAuth();
   const [newNote, setNewNote] = useState("");
-  const [activeTab, setActiveTab] = useState<"details" | "activity" | "files">(
-    "details",
-  );
-  const [notes, setNotes] = useState(dummyContact.notes);
-  const [labels, setLabels] = useState(dummyContact.labels);
+  const [activeTab, setActiveTab] = useState<TabType>("details");
+  const [notes, setNotes] = useState<Note[]>(dummyContact.notes);
+  const [labels, setLabels] = useState<string[]>(dummyContact.labels);
   const [showLabelInput, setShowLabelInput] = useState(false);
   const [newLabel, setNewLabel] = useState("");
 
-  const contact = selectedContact || {
-    id: selectedChat?.id || "default",
-    firstName: selectedChat?.name.split(" ")[0] || "Olivia",
-    lastName: selectedChat?.name.split(" ")[1] || "Mckinsey",
-    email: selectedChat?.email || "olivia.mckinsey@gmail.com",
-    phone: selectedChat?.phone || "+1 (312) 555-0134",
-    company: "Fit4Life",
-    position: "Premium Member",
-    labels: labels,
-  };
+  const contact: Contact = selectedContact
+    ? {
+        id: selectedContact.id,
+        firstName: selectedContact.firstName,
+        lastName: selectedContact.lastName,
+        email: selectedContact.email,
+        phone: selectedContact.phone,
+        company: selectedContact.company || "Fit4Life",
+        position: selectedContact.position || "Premium Member",
+        labels: selectedContact.labels || labels,
+      }
+    : {
+        id: selectedChat?.id || "default",
+        firstName: selectedChat?.name.split(" ")[0] || "Olivia",
+        lastName: selectedChat?.name.split(" ")[1] || "Mckinsey",
+        email: selectedChat?.email || "olivia.mckinsey@gmail.com",
+        phone: selectedChat?.phone || "+1 (312) 555-0134",
+        company: "Fit4Life",
+        position: "Premium Member",
+        labels: labels,
+      };
 
   const handleAddNote = () => {
     if (newNote.trim()) {
-      const newNoteObj = {
+      const newNoteObj: Note = {
         id: Date.now().toString(),
         userId: contact.id,
         content: newNote,
@@ -58,18 +96,20 @@ export const DetailsPanel: React.FC = () => {
     }
   };
 
-  const handleRemoveLabel = (labelToRemove: string) => {
-    setLabels(labels.filter((label) => label !== labelToRemove));
+  const handleRemoveLabel = (labelToRemove: string): void => {
+    setLabels(labels.filter((label: string) => label !== labelToRemove));
   };
+
+  const tabs: TabType[] = ["details", "activity", "files"];
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-white">
       {/* Tabs */}
       <div className="flex px-3 pt-2 border-b border-gray-200">
-        {["details", "activity", "files"].map((tab) => (
+        {tabs.map((tab: TabType) => (
           <button
             key={tab}
-            onClick={() => setActiveTab(tab as any)}
+            onClick={() => setActiveTab(tab)}
             className={`flex-1 pb-2 text-[11px] font-medium capitalize ${
               activeTab === tab
                 ? "text-blue-600 border-b-2 border-blue-600"
@@ -173,7 +213,7 @@ export const DetailsPanel: React.FC = () => {
                 Labels
               </h4>
               <div className="flex flex-wrap gap-1 mb-1.5">
-                {labels.map((label) => (
+                {labels.map((label: string) => (
                   <span
                     key={label}
                     className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded-full text-[9px] flex items-center gap-0.5"
@@ -192,7 +232,9 @@ export const DetailsPanel: React.FC = () => {
                     <input
                       type="text"
                       value={newLabel}
-                      onChange={(e) => setNewLabel(e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setNewLabel(e.target.value)
+                      }
                       placeholder="New label"
                       className="w-16 px-1.5 py-0.5 text-[9px] border rounded"
                       autoFocus
@@ -230,7 +272,9 @@ export const DetailsPanel: React.FC = () => {
                 <input
                   type="text"
                   value={newNote}
-                  onChange={(e) => setNewNote(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setNewNote(e.target.value)
+                  }
                   placeholder="Add a note..."
                   className="flex-1 px-2 py-1 bg-gray-50 rounded text-[10px] text-gray-900 placeholder-gray-400 outline-none focus:ring-1 focus:ring-blue-500"
                 />
@@ -243,7 +287,7 @@ export const DetailsPanel: React.FC = () => {
                 </button>
               </div>
               <div className="space-y-1.5">
-                {notes.map((note) => (
+                {notes.map((note: Note) => (
                   <div key={note.id} className="p-2 rounded bg-gray-50">
                     <p className="text-[10px] text-gray-900">{note.content}</p>
                     <div className="flex items-center justify-between mt-1">
@@ -280,7 +324,7 @@ export const DetailsPanel: React.FC = () => {
               Recent Activity
             </h4>
             <div className="space-y-1.5">
-              {[1, 2, 3, 4, 5].map((i) => (
+              {[1, 2, 3, 4, 5].map((i: number) => (
                 <div key={i} className="p-2 rounded bg-gray-50">
                   <p className="text-[10px] text-gray-900">Activity item {i}</p>
                   <span className="text-[8px] text-gray-500">Just now</span>
@@ -296,7 +340,7 @@ export const DetailsPanel: React.FC = () => {
               Shared Files
             </h4>
             <div className="space-y-1.5">
-              {[1, 2, 3].map((i) => (
+              {[1, 2, 3].map((i: number) => (
                 <div
                   key={i}
                   className="flex items-center gap-2 p-1.5 hover:bg-gray-50 rounded"

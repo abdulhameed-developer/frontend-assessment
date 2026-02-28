@@ -55,6 +55,345 @@ const supportTickets = [
   },
 ];
 
+// Define types for user objects
+interface UserToBlock {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+}
+
+interface BlockedUser extends UserToBlock {
+  blockedReason?: string;
+  blockedAt?: string;
+}
+
+// FIXED: Moved components outside of render function
+// Standard toggle switch component
+const ToggleSwitch = ({
+  enabled,
+  onChange,
+  label,
+  description,
+}: {
+  enabled: boolean;
+  onChange: (value: boolean) => void;
+  label: string;
+  description?: string;
+}) => (
+  <div className="flex items-center justify-between py-3">
+    <div className="flex-1 pr-4">
+      <p className="text-sm font-medium text-gray-900">{label}</p>
+      {description && (
+        <p className="text-xs text-gray-500 mt-0.5">{description}</p>
+      )}
+    </div>
+    <button
+      onClick={() => onChange(!enabled)}
+      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+        enabled ? "bg-blue-600" : "bg-gray-200"
+      }`}
+      aria-label={`Toggle ${label}`}
+      aria-pressed={enabled}
+    >
+      <span
+        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+          enabled ? "translate-x-6" : "translate-x-1"
+        }`}
+        aria-hidden="true"
+      />
+    </button>
+  </div>
+);
+
+// Standard button component
+const SettingsButton = ({
+  onClick,
+  children,
+  className = "",
+  showArrow = true,
+  ariaLabel,
+}: {
+  onClick: () => void;
+  children: React.ReactNode;
+  className?: string;
+  showArrow?: boolean;
+  ariaLabel?: string;
+}) => (
+  <button
+    onClick={onClick}
+    className={`w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors ${className}`}
+    aria-label={ariaLabel}
+  >
+    <div className="flex items-center justify-between">
+      <div>{children}</div>
+      {showArrow && (
+        <svg
+          className="w-5 h-5 text-gray-400"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 5l7 7-7 7"
+          />
+        </svg>
+      )}
+    </div>
+  </button>
+);
+
+// Terms of Service Content - Moved outside
+const TermsContent = ({ onClose }: { onClose: () => void }) => (
+  <div className="fixed inset-0 z-50 overflow-y-auto bg-white">
+    <div className="sticky top-0 flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200">
+      <button
+        onClick={onClose}
+        className="p-2 -ml-2 rounded-lg hover:bg-gray-100"
+        aria-label="Close terms of service"
+      >
+        <svg
+          className="w-5 h-5 text-gray-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+      <h2 className="text-lg font-semibold">Terms of Service</h2>
+      <div className="w-10" />
+    </div>
+    <div className="p-6 space-y-4">
+      <h3 className="text-xl font-bold">BOXpad Terms of Service</h3>
+      <p className="text-sm text-gray-600">Last updated: February 28, 2026</p>
+
+      <div className="space-y-4">
+        <div>
+          <h4 className="mb-2 font-semibold">1. Acceptance of Terms</h4>
+          <p className="text-sm text-gray-600">
+            By accessing and using BOXpad, you agree to be bound by these Terms
+            of Service and all applicable laws and regulations. If you do not
+            agree with any of these terms, you are prohibited from using or
+            accessing this site.
+          </p>
+        </div>
+
+        <div>
+          <h4 className="mb-2 font-semibold">2. Use License</h4>
+          <p className="text-sm text-gray-600">
+            Permission is granted to temporarily use BOXpad for personal,
+            non-commercial transitory viewing only. This is the grant of a
+            license, not a transfer of title, and under this license you may
+            not:
+          </p>
+          <ul className="mt-2 ml-6 text-sm text-gray-600 list-disc">
+            <li>Modify or copy the materials</li>
+            <li>Use the materials for any commercial purpose</li>
+            <li>Attempt to decompile or reverse engineer any software</li>
+            <li>Remove any copyright or other proprietary notations</li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="mb-2 font-semibold">3. Privacy and Data Protection</h4>
+          <p className="text-sm text-gray-600">
+            Your privacy is important to us. Our Privacy Policy explains how we
+            collect, use, and protect your personal information. By using
+            BOXpad, you consent to our data practices as described in the
+            Privacy Policy.
+          </p>
+        </div>
+
+        <div>
+          <h4 className="mb-2 font-semibold">4. User Content</h4>
+          <p className="text-sm text-gray-600">
+            You retain all rights to any content you submit, post, or display on
+            or through BOXpad. By submitting content, you grant us a worldwide,
+            non-exclusive, royalty-free license to use, reproduce, and display
+            such content solely for the purpose of providing and improving our
+            services.
+          </p>
+        </div>
+
+        <div>
+          <h4 className="mb-2 font-semibold">5. Prohibited Conduct</h4>
+          <p className="text-sm text-gray-600">You agree not to:</p>
+          <ul className="mt-2 ml-6 text-sm text-gray-600 list-disc">
+            <li>Harass, abuse, or harm another person</li>
+            <li>Impersonate any person or entity</li>
+            <li>Violate any applicable laws or regulations</li>
+            <li>Send spam or unsolicited messages</li>
+            <li>Interfere with the proper functioning of BOXpad</li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="mb-2 font-semibold">6. Termination</h4>
+          <p className="text-sm text-gray-600">
+            We may terminate or suspend your access to BOXpad immediately,
+            without prior notice or liability, for any reason whatsoever,
+            including without limitation if you breach the Terms.
+          </p>
+        </div>
+
+        <div>
+          <h4 className="mb-2 font-semibold">7. Limitation of Liability</h4>
+          <p className="text-sm text-gray-600">
+            In no event shall BOXpad be liable for any damages (including,
+            without limitation, damages for loss of data or profit, or due to
+            business interruption) arising out of the use or inability to use
+            the materials on BOXpad.
+          </p>
+        </div>
+
+        <div>
+          <h4 className="mb-2 font-semibold">8. Contact Information</h4>
+          <p className="text-sm text-gray-600">
+            If you have any questions about these Terms, please contact us
+            through our support channels or reach out on social media.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+// Privacy Policy Content - Moved outside
+const PrivacyContent = ({ onClose }: { onClose: () => void }) => (
+  <div className="fixed inset-0 z-50 overflow-y-auto bg-white">
+    <div className="sticky top-0 flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200">
+      <button
+        onClick={onClose}
+        className="p-2 -ml-2 rounded-lg hover:bg-gray-100"
+        aria-label="Close privacy policy"
+      >
+        <svg
+          className="w-5 h-5 text-gray-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+      <h2 className="text-lg font-semibold">Privacy Policy</h2>
+      <div className="w-10" />
+    </div>
+    <div className="p-6 space-y-4">
+      <h3 className="text-xl font-bold">BOXpad Privacy Policy</h3>
+      <p className="text-sm text-gray-600">Last updated: February 28, 2026</p>
+
+      <div className="space-y-4">
+        <div>
+          <h4 className="mb-2 font-semibold">1. Information We Collect</h4>
+          <p className="text-sm text-gray-600">
+            We collect information you provide directly to us, such as when you
+            create an account, update your profile, use our services, or
+            communicate with us. This information may include:
+          </p>
+          <ul className="mt-2 ml-6 text-sm text-gray-600 list-disc">
+            <li>Name and contact information</li>
+            <li>Profile information and avatar</li>
+            <li>Messages and communications</li>
+            <li>Usage data and preferences</li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="mb-2 font-semibold">2. How We Use Your Information</h4>
+          <p className="text-sm text-gray-600">
+            We use the information we collect to:
+          </p>
+          <ul className="mt-2 ml-6 text-sm text-gray-600 list-disc">
+            <li>Provide, maintain, and improve our services</li>
+            <li>Communicate with you about updates and support</li>
+            <li>Monitor and analyze usage patterns</li>
+            <li>Protect against fraud and abuse</li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="mb-2 font-semibold">3. Sharing of Information</h4>
+          <p className="text-sm text-gray-600">
+            We do not sell, trade, or rent your personal information to third
+            parties. We may share information in the following circumstances:
+          </p>
+          <ul className="mt-2 ml-6 text-sm text-gray-600 list-disc">
+            <li>With your consent</li>
+            <li>To comply with legal obligations</li>
+            <li>To protect our rights and safety</li>
+            <li>In connection with a business transfer</li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="mb-2 font-semibold">4. Data Security</h4>
+          <p className="text-sm text-gray-600">
+            We implement appropriate technical and organizational measures to
+            protect your personal information against unauthorized access,
+            alteration, disclosure, or destruction.
+          </p>
+        </div>
+
+        <div>
+          <h4 className="mb-2 font-semibold">5. Your Rights</h4>
+          <p className="text-sm text-gray-600">You have the right to:</p>
+          <ul className="mt-2 ml-6 text-sm text-gray-600 list-disc">
+            <li>Access your personal information</li>
+            <li>Correct inaccurate information</li>
+            <li>Request deletion of your information</li>
+            <li>Opt-out of certain data uses</li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="mb-2 font-semibold">6. Cookies and Tracking</h4>
+          <p className="text-sm text-gray-600">
+            We use cookies and similar tracking technologies to track activity
+            on our services and hold certain information. You can instruct your
+            browser to refuse all cookies or to indicate when a cookie is being
+            sent.
+          </p>
+        </div>
+
+        <div>
+          <h4 className="mb-2 font-semibold">7. Changes to Privacy Policy</h4>
+          <p className="text-sm text-gray-600">
+            We may update our Privacy Policy from time to time. We will notify
+            you of any changes by posting the new Privacy Policy on this page
+            and updating the &quot;last updated&quot; date.
+          </p>
+        </div>
+
+        <div>
+          <h4 className="mb-2 font-semibold">8. Contact Us</h4>
+          <p className="text-sm text-gray-600">
+            If you have any questions about this Privacy Policy, please contact
+            us through our support channels or reach out on social media.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
   const { user, logout, updateUser, uploadAvatar } = useAuth();
   const [editMode, setEditMode] = useState(false);
@@ -71,12 +410,11 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
   const [onlineStatus, setOnlineStatus] = useState(true);
   const [readReceipts, setReadReceipts] = useState(true);
 
-  // Blocked users state - FIXED CONCEPT: Now properly blocks users
-  const [blockedUsers, setBlockedUsers] = useState<
-    Array<{ id: string; name: string; email: string; avatar?: string }>
-  >([]);
+  // Blocked users state
+  const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
   const [showBlockUserModal, setShowBlockUserModal] = useState(false);
-  const [selectedUserToBlock, setSelectedUserToBlock] = useState<any>(null);
+  const [selectedUserToBlock, setSelectedUserToBlock] =
+    useState<UserToBlock | null>(null);
   const [blockReason, setBlockReason] = useState("");
 
   // Search for users to block
@@ -96,8 +434,8 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
   // Dynamic current year
   const currentYear = new Date().getFullYear();
 
-  // Mock users for blocking (in real app, this would come from your user database)
-  const availableUsers = [
+  // Mock users for blocking
+  const availableUsers: UserToBlock[] = [
     { id: "user1", name: "John Doe", email: "john@example.com", avatar: "" },
     { id: "user2", name: "Jane Smith", email: "jane@example.com", avatar: "" },
     { id: "user3", name: "Bob Wilson", email: "bob@example.com", avatar: "" },
@@ -142,10 +480,9 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
     setEditMode(false);
   };
 
-  // FIXED: Block user - now properly blocks selected user
   const handleBlockUser = () => {
     if (selectedUserToBlock) {
-      const userToBlock = {
+      const userToBlock: BlockedUser = {
         id: selectedUserToBlock.id,
         name: selectedUserToBlock.name,
         email: selectedUserToBlock.email,
@@ -162,7 +499,6 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
     }
   };
 
-  // FIXED: Unblock user - removes from blocked list
   const handleUnblockUser = (userId: string) => {
     setBlockedUsers(blockedUsers.filter((user) => user.id !== userId));
   };
@@ -178,332 +514,13 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
     }
   };
 
-  // Standard toggle switch component
-  const ToggleSwitch = ({
-    enabled,
-    onChange,
-    label,
-    description,
-  }: {
-    enabled: boolean;
-    onChange: (value: boolean) => void;
-    label: string;
-    description?: string;
-  }) => (
-    <div className="flex items-center justify-between py-3">
-      <div className="flex-1 pr-4">
-        <p className="text-sm font-medium text-gray-900">{label}</p>
-        {description && (
-          <p className="text-xs text-gray-500 mt-0.5">{description}</p>
-        )}
-      </div>
-      <button
-        onClick={() => onChange(!enabled)}
-        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-          enabled ? "bg-blue-600" : "bg-gray-200"
-        }`}
-      >
-        <span
-          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-            enabled ? "translate-x-6" : "translate-x-1"
-          }`}
-        />
-      </button>
-    </div>
-  );
-
-  // Standard button component
-  const SettingsButton = ({
-    onClick,
-    children,
-    className = "",
-    showArrow = true,
-  }: {
-    onClick: () => void;
-    children: React.ReactNode;
-    className?: string;
-    showArrow?: boolean;
-  }) => (
-    <button
-      onClick={onClick}
-      className={`w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors ${className}`}
-    >
-      <div className="flex items-center justify-between">
-        <div>{children}</div>
-        {showArrow && (
-          <svg
-            className="w-5 h-5 text-gray-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 5l7 7-7 7"
-            />
-          </svg>
-        )}
-      </div>
-    </button>
-  );
-
-  // Terms of Service Content
-  const TermsContent = () => (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-white">
-      <div className="sticky top-0 flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200">
-        <button
-          onClick={() => setShowTerms(false)}
-          className="p-2 -ml-2 rounded-lg hover:bg-gray-100"
-        >
-          <svg
-            className="w-5 h-5 text-gray-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
-        <h2 className="text-lg font-semibold">Terms of Service</h2>
-        <div className="w-10" />
-      </div>
-      <div className="p-6 space-y-4">
-        <h3 className="text-xl font-bold">BOXpad Terms of Service</h3>
-        <p className="text-sm text-gray-600">Last updated: February 28, 2026</p>
-
-        <div className="space-y-4">
-          <div>
-            <h4 className="mb-2 font-semibold">1. Acceptance of Terms</h4>
-            <p className="text-sm text-gray-600">
-              By accessing and using BOXpad, you agree to be bound by these
-              Terms of Service and all applicable laws and regulations. If you
-              do not agree with any of these terms, you are prohibited from
-              using or accessing this site.
-            </p>
-          </div>
-
-          <div>
-            <h4 className="mb-2 font-semibold">2. Use License</h4>
-            <p className="text-sm text-gray-600">
-              Permission is granted to temporarily use BOXpad for personal,
-              non-commercial transitory viewing only. This is the grant of a
-              license, not a transfer of title, and under this license you may
-              not:
-            </p>
-            <ul className="mt-2 ml-6 text-sm text-gray-600 list-disc">
-              <li>Modify or copy the materials</li>
-              <li>Use the materials for any commercial purpose</li>
-              <li>Attempt to decompile or reverse engineer any software</li>
-              <li>Remove any copyright or other proprietary notations</li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="mb-2 font-semibold">
-              3. Privacy and Data Protection
-            </h4>
-            <p className="text-sm text-gray-600">
-              Your privacy is important to us. Our Privacy Policy explains how
-              we collect, use, and protect your personal information. By using
-              BOXpad, you consent to our data practices as described in the
-              Privacy Policy.
-            </p>
-          </div>
-
-          <div>
-            <h4 className="mb-2 font-semibold">4. User Content</h4>
-            <p className="text-sm text-gray-600">
-              You retain all rights to any content you submit, post, or display
-              on or through BOXpad. By submitting content, you grant us a
-              worldwide, non-exclusive, royalty-free license to use, reproduce,
-              and display such content solely for the purpose of providing and
-              improving our services.
-            </p>
-          </div>
-
-          <div>
-            <h4 className="mb-2 font-semibold">5. Prohibited Conduct</h4>
-            <p className="text-sm text-gray-600">You agree not to:</p>
-            <ul className="mt-2 ml-6 text-sm text-gray-600 list-disc">
-              <li>Harass, abuse, or harm another person</li>
-              <li>Impersonate any person or entity</li>
-              <li>Violate any applicable laws or regulations</li>
-              <li>Send spam or unsolicited messages</li>
-              <li>Interfere with the proper functioning of BOXpad</li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="mb-2 font-semibold">6. Termination</h4>
-            <p className="text-sm text-gray-600">
-              We may terminate or suspend your access to BOXpad immediately,
-              without prior notice or liability, for any reason whatsoever,
-              including without limitation if you breach the Terms.
-            </p>
-          </div>
-
-          <div>
-            <h4 className="mb-2 font-semibold">7. Limitation of Liability</h4>
-            <p className="text-sm text-gray-600">
-              In no event shall BOXpad be liable for any damages (including,
-              without limitation, damages for loss of data or profit, or due to
-              business interruption) arising out of the use or inability to use
-              the materials on BOXpad.
-            </p>
-          </div>
-
-          <div>
-            <h4 className="mb-2 font-semibold">8. Contact Information</h4>
-            <p className="text-sm text-gray-600">
-              If you have any questions about these Terms, please contact us
-              through our support channels or reach out on social media.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  // Privacy Policy Content
-  const PrivacyContent = () => (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-white">
-      <div className="sticky top-0 flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200">
-        <button
-          onClick={() => setShowPrivacy(false)}
-          className="p-2 -ml-2 rounded-lg hover:bg-gray-100"
-        >
-          <svg
-            className="w-5 h-5 text-gray-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
-        <h2 className="text-lg font-semibold">Privacy Policy</h2>
-        <div className="w-10" />
-      </div>
-      <div className="p-6 space-y-4">
-        <h3 className="text-xl font-bold">BOXpad Privacy Policy</h3>
-        <p className="text-sm text-gray-600">Last updated: February 28, 2026</p>
-
-        <div className="space-y-4">
-          <div>
-            <h4 className="mb-2 font-semibold">1. Information We Collect</h4>
-            <p className="text-sm text-gray-600">
-              We collect information you provide directly to us, such as when
-              you create an account, update your profile, use our services, or
-              communicate with us. This information may include:
-            </p>
-            <ul className="mt-2 ml-6 text-sm text-gray-600 list-disc">
-              <li>Name and contact information</li>
-              <li>Profile information and avatar</li>
-              <li>Messages and communications</li>
-              <li>Usage data and preferences</li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="mb-2 font-semibold">
-              2. How We Use Your Information
-            </h4>
-            <p className="text-sm text-gray-600">
-              We use the information we collect to:
-            </p>
-            <ul className="mt-2 ml-6 text-sm text-gray-600 list-disc">
-              <li>Provide, maintain, and improve our services</li>
-              <li>Communicate with you about updates and support</li>
-              <li>Monitor and analyze usage patterns</li>
-              <li>Protect against fraud and abuse</li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="mb-2 font-semibold">3. Sharing of Information</h4>
-            <p className="text-sm text-gray-600">
-              We do not sell, trade, or rent your personal information to third
-              parties. We may share information in the following circumstances:
-            </p>
-            <ul className="mt-2 ml-6 text-sm text-gray-600 list-disc">
-              <li>With your consent</li>
-              <li>To comply with legal obligations</li>
-              <li>To protect our rights and safety</li>
-              <li>In connection with a business transfer</li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="mb-2 font-semibold">4. Data Security</h4>
-            <p className="text-sm text-gray-600">
-              We implement appropriate technical and organizational measures to
-              protect your personal information against unauthorized access,
-              alteration, disclosure, or destruction.
-            </p>
-          </div>
-
-          <div>
-            <h4 className="mb-2 font-semibold">5. Your Rights</h4>
-            <p className="text-sm text-gray-600">You have the right to:</p>
-            <ul className="mt-2 ml-6 text-sm text-gray-600 list-disc">
-              <li>Access your personal information</li>
-              <li>Correct inaccurate information</li>
-              <li>Request deletion of your information</li>
-              <li>Opt-out of certain data uses</li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="mb-2 font-semibold">6. Cookies and Tracking</h4>
-            <p className="text-sm text-gray-600">
-              We use cookies and similar tracking technologies to track activity
-              on our services and hold certain information. You can instruct
-              your browser to refuse all cookies or to indicate when a cookie is
-              being sent.
-            </p>
-          </div>
-
-          <div>
-            <h4 className="mb-2 font-semibold">7. Changes to Privacy Policy</h4>
-            <p className="text-sm text-gray-600">
-              We may update our Privacy Policy from time to time. We will notify
-              you of any changes by posting the new Privacy Policy on this page
-              and updating the "last updated" date.
-            </p>
-          </div>
-
-          <div>
-            <h4 className="mb-2 font-semibold">8. Contact Us</h4>
-            <p className="text-sm text-gray-600">
-              If you have any questions about this Privacy Policy, please
-              contact us through our support channels or reach out on social
-              media.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <div className="min-h-screen bg-white">
       {/* Terms Modal */}
-      {showTerms && <TermsContent />}
+      {showTerms && <TermsContent onClose={() => setShowTerms(false)} />}
 
       {/* Privacy Modal */}
-      {showPrivacy && <PrivacyContent />}
+      {showPrivacy && <PrivacyContent onClose={() => setShowPrivacy(false)} />}
 
       {/* Header - Fixed at top */}
       <div className="fixed top-0 left-0 right-0 z-20 bg-white border-b border-gray-200">
@@ -511,12 +528,14 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
           <button
             onClick={onClose}
             className="p-2 -ml-2 transition-colors rounded-lg hover:bg-gray-100"
+            aria-label="Close settings"
           >
             <svg
               className="w-5 h-5 text-gray-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"
@@ -535,12 +554,18 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
           {["profile", "notifications", "privacy", "help"].map((tab) => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab as any)}
+              onClick={() =>
+                setActiveTab(
+                  tab as "profile" | "notifications" | "privacy" | "help",
+                )
+              }
               className={`flex-1 py-3 text-sm font-medium capitalize transition-colors relative ${
                 activeTab === tab
                   ? "text-blue-600"
                   : "text-gray-500 hover:text-gray-700"
               }`}
+              aria-label={`${tab} settings`}
+              aria-current={activeTab === tab ? "page" : undefined}
             >
               {tab}
               {activeTab === tab && (
@@ -584,8 +609,13 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
                         </div>
                       )}
                     </div>
-                    <label className="absolute bottom-0 right-0 p-2 text-white transition-colors bg-blue-600 rounded-full cursor-pointer hover:bg-blue-700">
+                    <label
+                      htmlFor="avatar-upload"
+                      className="absolute bottom-0 right-0 p-2 text-white transition-colors bg-blue-600 rounded-full cursor-pointer hover:bg-blue-700"
+                      aria-label="Upload avatar"
+                    >
                       <input
+                        id="avatar-upload"
                         type="file"
                         accept="image/*"
                         className="hidden"
@@ -596,6 +626,7 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
+                        aria-hidden="true"
                       >
                         <path
                           strokeLinecap="round"
@@ -616,12 +647,16 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block mb-1 text-sm font-medium text-gray-700">
+                    <label
+                      htmlFor="first-name"
+                      className="block mb-1 text-sm font-medium text-gray-700"
+                    >
                       First Name
                     </label>
                     <input
+                      id="first-name"
                       type="text"
-                      value={editedUser?.firstName}
+                      value={editedUser?.firstName || ""}
                       onChange={(e) =>
                         setEditedUser({
                           ...editedUser!,
@@ -629,15 +664,20 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
                         })
                       }
                       className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="First Name"
                     />
                   </div>
                   <div>
-                    <label className="block mb-1 text-sm font-medium text-gray-700">
+                    <label
+                      htmlFor="last-name"
+                      className="block mb-1 text-sm font-medium text-gray-700"
+                    >
                       Last Name
                     </label>
                     <input
+                      id="last-name"
                       type="text"
-                      value={editedUser?.lastName}
+                      value={editedUser?.lastName || ""}
                       onChange={(e) =>
                         setEditedUser({
                           ...editedUser!,
@@ -645,44 +685,60 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
                         })
                       }
                       className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Last Name"
                     />
                   </div>
                   <div>
-                    <label className="block mb-1 text-sm font-medium text-gray-700">
+                    <label
+                      htmlFor="email"
+                      className="block mb-1 text-sm font-medium text-gray-700"
+                    >
                       Email
                     </label>
                     <input
+                      id="email"
                       type="email"
-                      value={editedUser?.email}
+                      value={editedUser?.email || ""}
                       onChange={(e) =>
                         setEditedUser({ ...editedUser!, email: e.target.value })
                       }
                       className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Email"
                     />
                   </div>
                   <div>
-                    <label className="block mb-1 text-sm font-medium text-gray-700">
+                    <label
+                      htmlFor="phone"
+                      className="block mb-1 text-sm font-medium text-gray-700"
+                    >
                       Phone
                     </label>
                     <input
+                      id="phone"
                       type="tel"
-                      value={editedUser?.phone}
+                      value={editedUser?.phone || ""}
                       onChange={(e) =>
                         setEditedUser({ ...editedUser!, phone: e.target.value })
                       }
                       className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Phone"
                     />
                   </div>
                   <div>
-                    <label className="block mb-1 text-sm font-medium text-gray-700">
+                    <label
+                      htmlFor="bio"
+                      className="block mb-1 text-sm font-medium text-gray-700"
+                    >
                       Bio
                     </label>
                     <textarea
-                      value={editedUser?.bio}
+                      id="bio"
+                      value={editedUser?.bio || ""}
                       onChange={(e) =>
                         setEditedUser({ ...editedUser!, bio: e.target.value })
                       }
                       className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Bio"
                       rows={3}
                     />
                   </div>
@@ -691,12 +747,14 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
                     <button
                       onClick={saveProfile}
                       className="flex-1 py-3 text-sm font-medium text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
+                      aria-label="Save profile changes"
                     >
                       Save Changes
                     </button>
                     <button
                       onClick={() => setEditMode(false)}
                       className="flex-1 py-3 text-sm font-medium transition-colors border border-gray-300 rounded-lg hover:bg-gray-50"
+                      aria-label="Cancel editing"
                     >
                       Cancel
                     </button>
@@ -771,12 +829,14 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
                 <button
                   onClick={() => setEditMode(true)}
                   className="w-full py-3 mb-3 text-sm font-medium text-white transition-colors bg-blue-600 rounded-xl hover:bg-blue-700"
+                  aria-label="Edit profile"
                 >
                   Edit Profile
                 </button>
                 <button
                   onClick={logout}
                   className="w-full py-3 text-sm font-medium text-red-600 transition-colors border border-red-300 rounded-xl hover:bg-red-50"
+                  aria-label="Sign out"
                 >
                   Sign Out
                 </button>
@@ -826,10 +886,11 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
                 description="Show when you've read messages"
               />
 
-              {/* Blocked Users Section - FIXED CONCEPT */}
+              {/* Blocked Users Section */}
               <div className="py-2">
                 <SettingsButton
                   onClick={() => setShowUserSearch(!showUserSearch)}
+                  ariaLabel="Manage blocked users"
                 >
                   <div>
                     <p className="text-sm font-medium text-gray-900">
@@ -844,12 +905,19 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
                 {/* Search and Block Users */}
                 {showUserSearch && (
                   <div className="px-4 pb-3">
+                    <label
+                      htmlFor="search-users"
+                      className="block mb-1 text-xs font-medium text-gray-700"
+                    >
+                      Search users to block
+                    </label>
                     <input
+                      id="search-users"
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search users to block..."
-                      className="w-full px-3 py-2 mb-3 text-sm border rounded-lg"
+                      className="w-full px-3 py-2 mb-3 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
                       autoFocus
                     />
 
@@ -865,12 +933,15 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
                               setShowBlockUserModal(true);
                             }}
                             className="flex items-center w-full gap-3 p-2 transition-colors rounded-lg hover:bg-gray-50"
+                            aria-label={`Block ${u.name}`}
                           >
                             <div className="flex items-center justify-center w-8 h-8 text-xs text-white bg-gray-300 rounded-full">
                               {u.avatar ? (
-                                <img
+                                <Image
                                   src={u.avatar}
                                   alt={u.name}
+                                  width={32}
+                                  height={32}
                                   className="object-cover w-full h-full rounded-full"
                                 />
                               ) : (
@@ -914,9 +985,11 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
                         <div className="flex items-center gap-2">
                           <div className="flex items-center justify-center w-8 h-8 text-xs text-red-600 bg-red-100 rounded-full">
                             {user.avatar ? (
-                              <img
+                              <Image
                                 src={user.avatar}
                                 alt={user.name}
+                                width={32}
+                                height={32}
                                 className="object-cover w-full h-full rounded-full"
                               />
                             ) : (
@@ -939,6 +1012,7 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
                         <button
                           onClick={() => handleUnblockUser(user.id)}
                           className="px-3 py-1 text-xs text-blue-600 transition-colors border border-blue-300 rounded-full hover:bg-blue-50"
+                          aria-label={`Unblock ${user.name}`}
                         >
                           Unblock
                         </button>
@@ -958,6 +1032,7 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
               <div className="py-2">
                 <SettingsButton
                   onClick={() => setExpandedFaq(expandedFaq === 0 ? null : 0)}
+                  ariaLabel="Toggle FAQ"
                 >
                   <div>
                     <p className="text-sm font-medium text-gray-900">FAQ</p>
@@ -985,6 +1060,7 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
               <div className="py-2">
                 <SettingsButton
                   onClick={() => setShowContactForm(!showContactForm)}
+                  ariaLabel="Toggle contact support form"
                 >
                   <div>
                     <p className="text-sm font-medium text-gray-900">
@@ -998,24 +1074,43 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
 
                 {showContactForm && (
                   <div className="px-4 pb-3 space-y-3">
-                    <input
-                      type="text"
-                      value={contactSubject}
-                      onChange={(e) => setContactSubject(e.target.value)}
-                      placeholder="Subject"
-                      className="w-full px-3 py-2 text-sm border rounded-lg"
-                    />
-                    <textarea
-                      value={contactMessage}
-                      onChange={(e) => setContactMessage(e.target.value)}
-                      placeholder="Describe your issue..."
-                      className="w-full px-3 py-2 text-sm border rounded-lg"
-                      rows={3}
-                    />
+                    <div>
+                      <label
+                        htmlFor="contact-subject"
+                        className="block mb-1 text-xs font-medium text-gray-700"
+                      >
+                        Subject
+                      </label>
+                      <input
+                        id="contact-subject"
+                        type="text"
+                        value={contactSubject}
+                        onChange={(e) => setContactSubject(e.target.value)}
+                        placeholder="Subject"
+                        className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="contact-message"
+                        className="block mb-1 text-xs font-medium text-gray-700"
+                      >
+                        Message
+                      </label>
+                      <textarea
+                        id="contact-message"
+                        value={contactMessage}
+                        onChange={(e) => setContactMessage(e.target.value)}
+                        placeholder="Describe your issue..."
+                        className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        rows={3}
+                      />
+                    </div>
                     <button
                       onClick={handleSubmitContact}
                       disabled={!contactSubject || !contactMessage}
                       className="w-full py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      aria-label="Submit support request"
                     >
                       Submit Request
                     </button>
@@ -1027,6 +1122,7 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
               <div className="py-2">
                 <SettingsButton
                   onClick={() => setExpandedFaq(expandedFaq === 1 ? null : 1)}
+                  ariaLabel="Toggle support tickets"
                 >
                   <div>
                     <p className="text-sm font-medium text-gray-900">
@@ -1072,6 +1168,7 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
               <button
                 onClick={() => setShowTerms(true)}
                 className="w-full px-4 py-3 text-left transition-colors hover:bg-gray-50"
+                aria-label="Read terms of service"
               >
                 <div className="flex items-center justify-between">
                   <div>
@@ -1085,6 +1182,7 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
+                    aria-hidden="true"
                   >
                     <path
                       strokeLinecap="round"
@@ -1100,6 +1198,7 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
               <button
                 onClick={() => setShowPrivacy(true)}
                 className="w-full px-4 py-3 text-left transition-colors hover:bg-gray-50"
+                aria-label="Read privacy policy"
               >
                 <div className="flex items-center justify-between">
                   <div>
@@ -1115,6 +1214,7 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
+                    aria-hidden="true"
                   >
                     <path
                       strokeLinecap="round"
@@ -1137,12 +1237,14 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex flex-col items-center gap-1 group"
+                    aria-label="Visit our LinkedIn page"
                   >
                     <div className="flex items-center justify-center w-12 h-12 transition-colors bg-blue-100 rounded-full group-hover:bg-blue-200">
                       <svg
                         className="w-6 h-6 text-blue-600"
                         fill="currentColor"
                         viewBox="0 0 24 24"
+                        aria-hidden="true"
                       >
                         <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451c.979 0 1.778-.773 1.778-1.729V1.73C24 .774 23.203 0 22.225 0z" />
                       </svg>
@@ -1154,12 +1256,14 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex flex-col items-center gap-1 group"
+                    aria-label="Visit our GitHub page"
                   >
                     <div className="flex items-center justify-center w-12 h-12 transition-colors bg-gray-100 rounded-full group-hover:bg-gray-200">
                       <svg
                         className="w-6 h-6 text-gray-800"
                         fill="currentColor"
                         viewBox="0 0 24 24"
+                        aria-hidden="true"
                       >
                         <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.205 11.387.6.113.82-.26.82-.58 0-.287-.01-1.05-.015-2.06-3.338.726-4.042-1.61-4.042-1.61-.546-1.39-1.335-1.76-1.335-1.76-1.09-.746.082-.73.082-.73 1.205.085 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.776.418-1.306.762-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.468-2.38 1.235-3.22-.123-.3-.535-1.52.117-3.16 0 0 1.008-.322 3.3 1.23.96-.267 1.98-.4 3-.405 1.02.005 2.04.138 3 .405 2.29-1.552 3.297-1.23 3.297-1.23.653 1.64.24 2.86.118 3.16.768.84 1.233 1.91 1.233 3.22 0 4.61-2.804 5.62-5.476 5.92.43.37.824 1.1.824 2.22 0 1.6-.015 2.89-.015 3.28 0 .32.216.7.83.58C20.565 21.795 24 17.3 24 12c0-6.627-5.373-12-12-12z" />
                       </svg>
@@ -1181,7 +1285,7 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
         )}
       </div>
 
-      {/* Block User Confirmation Modal - FIXED: Now properly blocks selected user */}
+      {/* Block User Confirmation Modal */}
       {showBlockUserModal && selectedUserToBlock && (
         <>
           <div
@@ -1203,12 +1307,14 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
                   setSelectedUserToBlock(null);
                   setBlockReason("");
                 }}
+                aria-label="Close block user modal"
               >
                 <svg
                   className="w-6 h-6 text-gray-500"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
+                  aria-hidden="true"
                 >
                   <path
                     strokeLinecap="round"
@@ -1224,9 +1330,11 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
               <div className="flex items-center gap-3 p-3 mb-3 rounded-lg bg-red-50">
                 <div className="flex items-center justify-center w-10 h-10 font-semibold text-red-600 bg-red-200 rounded-full">
                   {selectedUserToBlock.avatar ? (
-                    <img
+                    <Image
                       src={selectedUserToBlock.avatar}
                       alt={selectedUserToBlock.name}
+                      width={40}
+                      height={40}
                       className="object-cover w-full h-full rounded-full"
                     />
                   ) : (
@@ -1247,15 +1355,19 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
                 </div>
               </div>
 
-              <label className="block mb-1 text-sm font-medium text-gray-700">
+              <label
+                htmlFor="block-reason"
+                className="block mb-1 text-sm font-medium text-gray-700"
+              >
                 Reason for blocking (optional)
               </label>
               <input
+                id="block-reason"
                 type="text"
                 value={blockReason}
                 onChange={(e) => setBlockReason(e.target.value)}
                 placeholder="e.g., Spam, Harassment, etc."
-                className="w-full px-4 py-3 mb-4 text-sm bg-gray-100 rounded-lg"
+                className="w-full px-4 py-3 mb-4 text-sm bg-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 autoFocus
               />
             </div>
@@ -1264,6 +1376,7 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
               <button
                 onClick={handleBlockUser}
                 className="flex-1 py-3 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700"
+                aria-label="Confirm block user"
               >
                 Block User
               </button>
@@ -1274,6 +1387,7 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
                   setBlockReason("");
                 }}
                 className="flex-1 py-3 text-sm font-medium border border-gray-300 rounded-lg hover:bg-gray-50"
+                aria-label="Cancel block"
               >
                 Cancel
               </button>

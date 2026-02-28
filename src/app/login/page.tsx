@@ -326,23 +326,31 @@ export default function LoginPage() {
           {/* Terms for Signup */}
           {!isLogin && (
             <div className="flex items-center">
-              <input
-                type="checkbox"
-                checked={acceptTerms}
-                onChange={(e) => setAcceptTerms(e.target.checked)}
-                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                required
-              />
-              <span className="ml-2 text-xs text-gray-600">
-                I accept the{" "}
-                <button type="button" className="text-blue-600 hover:underline">
-                  Terms of Service
-                </button>{" "}
-                and{" "}
-                <button type="button" className="text-blue-600 hover:underline">
-                  Privacy Policy
-                </button>
-              </span>
+              <label className="flex items-center text-xs text-gray-600">
+                <input
+                  type="checkbox"
+                  checked={acceptTerms}
+                  onChange={(e) => setAcceptTerms(e.target.checked)}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  required
+                />
+                <span className="ml-2">
+                  I accept the{" "}
+                  <button
+                    type="button"
+                    className="text-blue-600 hover:underline"
+                  >
+                    Terms of Service
+                  </button>{" "}
+                  and{" "}
+                  <button
+                    type="button"
+                    className="text-blue-600 hover:underline"
+                  >
+                    Privacy Policy
+                  </button>
+                </span>
+              </label>
             </div>
           )}
 

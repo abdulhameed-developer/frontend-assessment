@@ -1,10 +1,11 @@
 // File: src/components/layout/Header.tsx
-'use client';
+"use client";
 
-import React, { useState, useEffect, useRef } from 'react';
-import Image from 'next/image';
-import { useAuth } from '@/context/AuthContext';
-import { useChat } from '@/context/ChatContext';
+import { useAuth } from "@/context/AuthContext";
+import { useChat } from "@/context/ChatContext";
+import { User } from "@/types";
+import Image from "next/image";
+import React, { useEffect, useRef, useState } from "react";
 
 interface NavItem {
   id: string;
@@ -15,34 +16,43 @@ interface NavItem {
 export const Header: React.FC = () => {
   const { user, logout, updateUser, uploadAvatar } = useAuth();
   const { setFilterType, setSortBy } = useChat();
-  const [activeNav, setActiveNav] = useState('Inbox');
+  const [activeNav, setActiveNav] = useState("Inbox");
   const [profileOpen, setProfileOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  const [editedUser, setEditedUser] = useState(user);
+  const [editedUser, setEditedUser] = useState<User | null>(user);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  
+
   const profileRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const settingsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+      if (
+        profileRef.current &&
+        !profileRef.current.contains(event.target as Node)
+      ) {
         setProfileOpen(false);
         setEditMode(false);
       }
-      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
+      if (
+        mobileMenuRef.current &&
+        !mobileMenuRef.current.contains(event.target as Node)
+      ) {
         setMobileMenuOpen(false);
       }
-      if (settingsRef.current && !settingsRef.current.contains(event.target as Node)) {
+      if (
+        settingsRef.current &&
+        !settingsRef.current.contains(event.target as Node)
+      ) {
         setSettingsOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   useEffect(() => {
@@ -52,8 +62,9 @@ export const Header: React.FC = () => {
       setSettingsOpen(false);
     };
 
-    document.addEventListener('closeAllDropdowns', handleCloseDropdowns);
-    return () => document.removeEventListener('closeAllDropdowns', handleCloseDropdowns);
+    document.addEventListener("closeAllDropdowns", handleCloseDropdowns);
+    return () =>
+      document.removeEventListener("closeAllDropdowns", handleCloseDropdowns);
   }, []);
 
   // Listen for openProfileEdit event
@@ -63,74 +74,156 @@ export const Header: React.FC = () => {
       setEditMode(true);
     };
 
-    document.addEventListener('openProfileEdit', handleOpenProfileEdit);
-    return () => document.removeEventListener('openProfileEdit', handleOpenProfileEdit);
+    document.addEventListener("openProfileEdit", handleOpenProfileEdit);
+    return () =>
+      document.removeEventListener("openProfileEdit", handleOpenProfileEdit);
   }, []);
 
   if (!user) return null;
 
   const navItems: NavItem[] = [
     {
-      id: 'Inbox',
-      label: 'Inbox',
+      id: "Inbox",
+      label: "Inbox",
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <path d="M22 12H2M5.5 12H2L8 20h8l6-8h-3.5M16 4l-4-4-4 4" strokeLinecap="round" strokeLinejoin="round"/>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        >
+          <path
+            d="M22 12H2M5.5 12H2L8 20h8l6-8h-3.5M16 4l-4-4-4 4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       ),
     },
     {
-      id: 'Contacts',
-      label: 'Contacts',
+      id: "Contacts",
+      label: "Contacts",
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" strokeLinecap="round"/>
-          <circle cx="12" cy="7" r="4"/>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        >
+          <path
+            d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+            strokeLinecap="round"
+          />
+          <circle cx="12" cy="7" r="4" />
         </svg>
       ),
     },
     {
-      id: 'AI Employees',
-      label: 'AI Employees',
+      id: "AI Employees",
+      label: "AI Employees",
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <circle cx="12" cy="12" r="10"/>
-          <path d="M12 8v8M8 12h8" strokeLinecap="round"/>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 8v8M8 12h8" strokeLinecap="round" />
         </svg>
       ),
     },
     {
-      id: 'Workflows',
-      label: 'Workflows',
+      id: "Workflows",
+      label: "Workflows",
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <path d="M4 4v16h16" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M8 16l4-4 4 4" strokeLinecap="round" strokeLinejoin="round"/>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        >
+          <path d="M4 4v16h16" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d="M8 16l4-4 4 4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       ),
     },
     {
-      id: 'Campaigns',
-      label: 'Campaigns',
+      id: "Campaigns",
+      label: "Campaigns",
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" strokeLinecap="round"/>
-          <polyline points="7 10 12 15 17 10" strokeLinecap="round" strokeLinejoin="round"/>
-          <line x1="12" y1="15" x2="12" y2="3" strokeLinecap="round"/>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        >
+          <path
+            d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+            strokeLinecap="round"
+          />
+          <polyline
+            points="7 10 12 15 17 10"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <line x1="12" y1="15" x2="12" y2="3" strokeLinecap="round" />
         </svg>
       ),
     },
   ];
 
+  // FIXED: Added proper typing for prev parameter in setEditedUser
+  const handleFirstNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditedUser((prev: User | null) =>
+      prev ? { ...prev, firstName: e.target.value } : prev,
+    );
+  };
+
+  const handleLastNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditedUser((prev: User | null) =>
+      prev ? { ...prev, lastName: e.target.value } : prev,
+    );
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditedUser((prev: User | null) =>
+      prev ? { ...prev, email: e.target.value } : prev,
+    );
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditedUser((prev: User | null) =>
+      prev ? { ...prev, phone: e.target.value } : prev,
+    );
+  };
+
+  const handleBioChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setEditedUser((prev: User | null) =>
+      prev ? { ...prev, bio: e.target.value } : prev,
+    );
+  };
+
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 w-full">
         <div className="w-full lg:w-[1185px] lg:mx-auto px-4 lg:px-0 lg:py-3">
-          {/* Main Header Container - Exact dimensions */}
-          <div 
-            className="w-full lg:w-[1188.77px] h-[39.3px] bg-white rounded-[11.23px] py-[7.02px] px-[11.23px] flex items-center justify-between gap-[5.61px] mx-auto"
-            style={{ boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)' }}
-          >
+          {/* Main Header Container */}
+          <div className="w-full lg:w-[1188.77px] h-[39.3px] bg-white rounded-[11.23px] py-[7.02px] px-[11.23px] flex items-center justify-between gap-[5.61px] mx-auto shadow-sm">
             {/* Left Section with Logo and Navigation */}
             <div className="flex items-center gap-[5.61px] flex-1">
               {/* Logo with Mobile Menu Toggle */}
@@ -139,9 +232,20 @@ export const Header: React.FC = () => {
                 <button
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                   className="lg:hidden w-8 h-8 flex items-center justify-center rounded-[5.61px] hover:bg-gray-100"
+                  aria-label="Toggle mobile menu"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 6h16M4 12h16M4 18h16"
+                    />
                   </svg>
                 </button>
 
@@ -158,19 +262,25 @@ export const Header: React.FC = () => {
                     key={item.id}
                     onClick={() => {
                       setActiveNav(item.id);
-                      if (item.id === 'Inbox') setFilterType('all');
-                      else if (item.id === 'Contacts') setFilterType('unread');
-                      else if (item.id === 'Workflows') setSortBy('unread');
+                      if (item.id === "Inbox") setFilterType("all");
+                      else if (item.id === "Contacts") setFilterType("unread");
+                      else if (item.id === "Workflows") setSortBy("unread");
                     }}
                     className={`flex items-center gap-[5.61px] px-[7.02px] py-0 h-[23.86px] rounded-[5.61px] transition-colors ${
                       activeNav === item.id
-                        ? 'bg-gray-100 border-[0.7px] border-gray-300'
-                        : 'bg-transparent border-[0.7px] border-transparent hover:bg-gray-50'
+                        ? "bg-gray-100 border-[0.7px] border-gray-300"
+                        : "bg-transparent border-[0.7px] border-transparent hover:bg-gray-50"
                     }`}
+                    aria-label={item.label}
+                    aria-current={activeNav === item.id ? "page" : undefined}
                   >
-                    <span className={`w-[14.04px] h-[14.04px] flex items-center justify-center ${
-                      activeNav === item.id ? 'text-gray-900' : 'text-gray-400'
-                    }`}>
+                    <span
+                      className={`w-[14.04px] h-[14.04px] flex items-center justify-center ${
+                        activeNav === item.id
+                          ? "text-gray-900"
+                          : "text-gray-400"
+                      }`}
+                    >
                       {item.icon}
                     </span>
                     <span className="font-sf-compact-medium text-[9.82px] leading-[100%] text-[#000000]">
@@ -183,33 +293,38 @@ export const Header: React.FC = () => {
 
             {/* Right Section */}
             <div className="flex items-center gap-[5.61px]">
-              {/* Settings Icon - Now Functional */}
+              {/* Settings Icon */}
               <div className="relative" ref={settingsRef}>
-                <button 
+                <button
                   onClick={() => setSettingsOpen(!settingsOpen)}
                   className="relative w-[29.47px] h-[25.26px] group"
+                  aria-label="Settings"
+                  // FIXED: Convert boolean to string "true"/"false"
+                  aria-expanded={settingsOpen ? "true" : "false"}
                 >
                   {/* Outer Border */}
                   <div className="absolute inset-0 border border-gray-300 rounded-[5.61px] group-hover:border-blue-600 transition-colors" />
                   {/* Inner Border */}
                   <div className="absolute inset-[3px] border border-gray-400 rounded-[4px] flex items-center justify-center group-hover:border-blue-600 transition-colors">
-                    <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <circle cx="10" cy="10" r="1.5" fill="#1F2937"/>
-                      <circle cx="10" cy="4" r="1.5" fill="#1F2937"/>
-                      <circle cx="10" cy="16" r="1.5" fill="#1F2937"/>
-                      <circle cx="16" cy="10" r="1.5" fill="#1F2937"/>
-                      <circle cx="4" cy="10" r="1.5" fill="#1F2937"/>
-                      <circle cx="14" cy="6" r="1.5" fill="#1F2937"/>
-                      <circle cx="6" cy="14" r="1.5" fill="#1F2937"/>
-                      <circle cx="14" cy="14" r="1.5" fill="#1F2937"/>
-                      <circle cx="6" cy="6" r="1.5" fill="#1F2937"/>
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 20 20"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <circle cx="10" cy="10" r="1.5" fill="#1F2937" />
+                      <circle cx="10" cy="4" r="1.5" fill="#1F2937" />
+                      <circle cx="10" cy="16" r="1.5" fill="#1F2937" />
+                      <circle cx="16" cy="10" r="1.5" fill="#1F2937" />
+                      <circle cx="4" cy="10" r="1.5" fill="#1F2937" />
                     </svg>
                   </div>
                 </button>
 
                 {/* Settings Dropdown */}
                 {settingsOpen && (
-                  <div className="absolute right-0 z-50 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl w-48 animate-fadeIn">
+                  <div className="absolute right-0 z-50 w-48 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl animate-fadeIn">
                     <div className="py-1">
                       <button
                         onClick={() => {
@@ -223,8 +338,7 @@ export const Header: React.FC = () => {
                       <button
                         onClick={() => {
                           setSettingsOpen(false);
-                          // Add notification settings
-                          alert('Notification settings');
+                          alert("Notification settings");
                         }}
                         className="w-full px-4 py-2 text-left font-sf-compact-medium text-[9.82px] hover:bg-gray-50"
                       >
@@ -233,8 +347,7 @@ export const Header: React.FC = () => {
                       <button
                         onClick={() => {
                           setSettingsOpen(false);
-                          // Add privacy settings
-                          alert('Privacy settings');
+                          alert("Privacy settings");
                         }}
                         className="w-full px-4 py-2 text-left font-sf-compact-medium text-[9.82px] hover:bg-gray-50"
                       >
@@ -243,8 +356,7 @@ export const Header: React.FC = () => {
                       <button
                         onClick={() => {
                           setSettingsOpen(false);
-                          // Add help
-                          alert('Help & Support');
+                          alert("Help & Support");
                         }}
                         className="w-full px-4 py-2 text-left font-sf-compact-medium text-[9.82px] hover:bg-gray-50"
                       >
@@ -270,6 +382,9 @@ export const Header: React.FC = () => {
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
                   className="flex items-center gap-[5.61px] focus:outline-none profile-button px-[8.42px] py-0 h-[25.26px] hover:bg-gray-50 rounded-lg transition-colors"
+                  aria-label="User profile"
+                  // FIXED: Convert boolean to string "true"/"false"
+                  aria-expanded={profileOpen ? "true" : "false"}
                 >
                   {/* Avatar Container */}
                   <div className="relative w-[19.65px] h-[19.65px]">
@@ -287,7 +402,8 @@ export const Header: React.FC = () => {
                         />
                       ) : (
                         <span className="font-sf-compact-medium text-[9.82px] leading-[100%] text-white">
-                          {user.firstName[0]}{user.lastName[0]}
+                          {user.firstName[0]}
+                          {user.lastName[0]}
                         </span>
                       )}
                     </div>
@@ -299,8 +415,18 @@ export const Header: React.FC = () => {
                   </span>
 
                   {/* Dropdown Arrow */}
-                  <svg className="hidden w-3 h-3 text-gray-400 lg:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <svg
+                    className="hidden w-3 h-3 text-gray-400 lg:block"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
                   </svg>
                 </button>
 
@@ -309,7 +435,9 @@ export const Header: React.FC = () => {
                   <div className="absolute right-0 z-50 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl w-80 animate-fadeIn profile-dropdown">
                     {editMode ? (
                       <div className="p-4 max-h-[80vh] overflow-y-auto">
-                        <h3 className="font-sf-compact-bold text-[12.63px] mb-4">Edit Profile</h3>
+                        <h3 className="font-sf-compact-bold text-[12.63px] mb-4">
+                          Edit Profile
+                        </h3>
                         <div className="space-y-4">
                           <div className="flex justify-center">
                             <div className="relative">
@@ -332,12 +460,18 @@ export const Header: React.FC = () => {
                                   />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center text-white font-sf-compact-medium text-[12px]">
-                                    {user.firstName[0]}{user.lastName[0]}
+                                    {user.firstName[0]}
+                                    {user.lastName[0]}
                                   </div>
                                 )}
                               </div>
-                              <label className="absolute bottom-0 right-0 p-2 text-white bg-blue-600 rounded-full cursor-pointer hover:bg-blue-700">
+                              <label
+                                htmlFor="avatar-upload"
+                                className="absolute bottom-0 right-0 p-2 text-white bg-blue-600 rounded-full cursor-pointer hover:bg-blue-700"
+                              >
+                                <span className="sr-only">Upload avatar</span>
                                 <input
+                                  id="avatar-upload"
                                   type="file"
                                   accept="image/*"
                                   className="hidden"
@@ -347,48 +481,115 @@ export const Header: React.FC = () => {
                                     }
                                   }}
                                 />
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                                  />
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                                  />
                                 </svg>
                               </label>
                             </div>
                           </div>
-                          <input
-                            type="text"
-                            value={editedUser?.firstName || ''}
-                            onChange={(e) => setEditedUser(prev => prev ? { ...prev, firstName: e.target.value } : prev)}
-                            className="w-full px-3 py-2 border rounded-lg font-sf-compact-regular text-[10.73px]"
-                            placeholder="First Name"
-                          />
-                          <input
-                            type="text"
-                            value={editedUser?.lastName || ''}
-                            onChange={(e) => setEditedUser(prev => prev ? { ...prev, lastName: e.target.value } : prev)}
-                            className="w-full px-3 py-2 border rounded-lg font-sf-compact-regular text-[10.73px]"
-                            placeholder="Last Name"
-                          />
-                          <input
-                            type="email"
-                            value={editedUser?.email || ''}
-                            onChange={(e) => setEditedUser(prev => prev ? { ...prev, email: e.target.value } : prev)}
-                            className="w-full px-3 py-2 border rounded-lg font-sf-compact-regular text-[10.73px]"
-                            placeholder="Email"
-                          />
-                          <input
-                            type="tel"
-                            value={editedUser?.phone || ''}
-                            onChange={(e) => setEditedUser(prev => prev ? { ...prev, phone: e.target.value } : prev)}
-                            className="w-full px-3 py-2 border rounded-lg font-sf-compact-regular text-[10.73px]"
-                            placeholder="Phone"
-                          />
-                          <textarea
-                            value={editedUser?.bio || ''}
-                            onChange={(e) => setEditedUser(prev => prev ? { ...prev, bio: e.target.value } : prev)}
-                            className="w-full px-3 py-2 border rounded-lg font-sf-compact-regular text-[10.73px]"
-                            placeholder="Bio"
-                            rows={3}
-                          />
+
+                          {/* Form inputs with proper labels */}
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block mb-1 font-sf-compact-regular text-[10.73px] text-gray-700"
+                            >
+                              First Name
+                            </label>
+                            <input
+                              id="first-name"
+                              type="text"
+                              value={editedUser?.firstName || ""}
+                              onChange={handleFirstNameChange}
+                              className="w-full px-3 py-2 border rounded-lg font-sf-compact-regular text-[10.73px]"
+                              placeholder="First Name"
+                            />
+                          </div>
+
+                          <div>
+                            <label
+                              htmlFor="last-name"
+                              className="block mb-1 font-sf-compact-regular text-[10.73px] text-gray-700"
+                            >
+                              Last Name
+                            </label>
+                            <input
+                              id="last-name"
+                              type="text"
+                              value={editedUser?.lastName || ""}
+                              onChange={handleLastNameChange}
+                              className="w-full px-3 py-2 border rounded-lg font-sf-compact-regular text-[10.73px]"
+                              placeholder="Last Name"
+                            />
+                          </div>
+
+                          <div>
+                            <label
+                              htmlFor="email"
+                              className="block mb-1 font-sf-compact-regular text-[10.73px] text-gray-700"
+                            >
+                              Email
+                            </label>
+                            <input
+                              id="email"
+                              type="email"
+                              value={editedUser?.email || ""}
+                              onChange={handleEmailChange}
+                              className="w-full px-3 py-2 border rounded-lg font-sf-compact-regular text-[10.73px]"
+                              placeholder="Email"
+                            />
+                          </div>
+
+                          <div>
+                            <label
+                              htmlFor="phone"
+                              className="block mb-1 font-sf-compact-regular text-[10.73px] text-gray-700"
+                            >
+                              Phone
+                            </label>
+                            <input
+                              id="phone"
+                              type="tel"
+                              value={editedUser?.phone || ""}
+                              onChange={handlePhoneChange}
+                              className="w-full px-3 py-2 border rounded-lg font-sf-compact-regular text-[10.73px]"
+                              placeholder="Phone"
+                            />
+                          </div>
+
+                          <div>
+                            <label
+                              htmlFor="bio"
+                              className="block mb-1 font-sf-compact-regular text-[10.73px] text-gray-700"
+                            >
+                              Bio
+                            </label>
+                            <textarea
+                              id="bio"
+                              value={editedUser?.bio || ""}
+                              onChange={handleBioChange}
+                              className="w-full px-3 py-2 border rounded-lg font-sf-compact-regular text-[10.73px]"
+                              placeholder="Bio"
+                              rows={3}
+                            />
+                          </div>
+
                           <div className="flex gap-2">
                             <button
                               onClick={async () => {
@@ -429,33 +630,56 @@ export const Header: React.FC = () => {
                                 />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center text-white font-sf-compact-medium text-[12px]">
-                                  {user.firstName[0]}{user.lastName[0]}
+                                  {user.firstName[0]}
+                                  {user.lastName[0]}
                                 </div>
                               )}
                             </div>
                             <div>
-                              <h4 className="font-sf-compact-medium text-[9.82px] text-gray-900">{user.firstName} {user.lastName}</h4>
-                              <p className="font-sf-compact-regular text-[10.73px] text-gray-500">{user.email}</p>
-                              <span className="font-sf-compact-number text-[8.42px] text-green-600">● Online</span>
+                              <h4 className="font-sf-compact-medium text-[9.82px] text-gray-900">
+                                {user.firstName} {user.lastName}
+                              </h4>
+                              <p className="font-sf-compact-regular text-[10.73px] text-gray-500">
+                                {user.email}
+                              </p>
+                              <span className="font-sf-compact-number text-[8.42px] text-green-600">
+                                ● Online
+                              </span>
                             </div>
                           </div>
                         </div>
                         <div className="p-4 space-y-3">
                           <div className="flex items-center gap-2">
-                            <span className="font-sf-compact-regular text-[10.73px] text-gray-500 w-20">Role:</span>
-                            <span className="font-sf-compact-medium text-[9.82px] text-gray-900">{user.role}</span>
+                            <span className="font-sf-compact-regular text-[10.73px] text-gray-500 w-20">
+                              Role:
+                            </span>
+                            <span className="font-sf-compact-medium text-[9.82px] text-gray-900">
+                              {user.role}
+                            </span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="font-sf-compact-regular text-[10.73px] text-gray-500 w-20">Department:</span>
-                            <span className="font-sf-compact-medium text-[9.82px] text-gray-900">{user.department}</span>
+                            <span className="font-sf-compact-regular text-[10.73px] text-gray-500 w-20">
+                              Department:
+                            </span>
+                            <span className="font-sf-compact-medium text-[9.82px] text-gray-900">
+                              {user.department}
+                            </span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="font-sf-compact-regular text-[10.73px] text-gray-500 w-20">Phone:</span>
-                            <span className="font-sf-compact-medium text-[9.82px] text-gray-900">{user.phone}</span>
+                            <span className="font-sf-compact-regular text-[10.73px] text-gray-500 w-20">
+                              Phone:
+                            </span>
+                            <span className="font-sf-compact-medium text-[9.82px] text-gray-900">
+                              {user.phone}
+                            </span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="font-sf-compact-regular text-[10.73px] text-gray-500 w-20">Location:</span>
-                            <span className="font-sf-compact-medium text-[9.82px] text-gray-900">{user.location}</span>
+                            <span className="font-sf-compact-regular text-[10.73px] text-gray-500 w-20">
+                              Location:
+                            </span>
+                            <span className="font-sf-compact-medium text-[9.82px] text-gray-900">
+                              {user.location}
+                            </span>
                           </div>
                           <div className="pt-2 font-sf-compact-regular text-[10.73px] text-gray-600 border-t">
                             {user.bio}
@@ -492,7 +716,7 @@ export const Header: React.FC = () => {
             className="fixed inset-0 z-40 bg-black bg-opacity-50 backdrop-blur-sm lg:hidden"
             onClick={() => setMobileMenuOpen(false)}
           />
-          <div 
+          <div
             ref={mobileMenuRef}
             className="fixed top-0 left-0 z-50 w-64 h-full bg-white shadow-lg lg:hidden animate-slideIn"
           >
@@ -501,9 +725,23 @@ export const Header: React.FC = () => {
                 <span className="font-poppins-bold text-[12.63px] text-[#1A1D1F]">
                   BOX<span className="text-blue-600">pad</span>
                 </span>
-                <button onClick={() => setMobileMenuOpen(false)} className="p-1 hover:bg-gray-100 rounded-lg">
-                  <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <button
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-1 rounded-lg hover:bg-gray-100"
+                  aria-label="Close mobile menu"
+                >
+                  <svg
+                    className="w-5 h-5 text-gray-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>
@@ -518,14 +756,19 @@ export const Header: React.FC = () => {
                   }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg ${
                     activeNav === item.id
-                      ? 'bg-blue-50 text-blue-600'
-                      : 'text-gray-600 hover:bg-gray-50'
+                      ? "bg-blue-50 text-blue-600"
+                      : "text-gray-600 hover:bg-gray-50"
                   }`}
+                  aria-label={item.label}
                 >
-                  <span className={`w-5 h-5 ${activeNav === item.id ? 'text-blue-600' : 'text-gray-400'}`}>
+                  <span
+                    className={`w-5 h-5 ${activeNav === item.id ? "text-blue-600" : "text-gray-400"}`}
+                  >
                     {item.icon}
                   </span>
-                  <span className="font-sf-compact-medium text-[9.82px]">{item.label}</span>
+                  <span className="font-sf-compact-medium text-[9.82px]">
+                    {item.label}
+                  </span>
                 </button>
               ))}
               <div className="pt-4 mt-4 border-t border-gray-200">
@@ -534,25 +777,46 @@ export const Header: React.FC = () => {
                     setMobileMenuOpen(false);
                     setProfileOpen(true);
                   }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-50"
+                  className="flex items-center w-full gap-3 px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-50"
+                  aria-label="Profile"
                 >
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  <svg
+                    className="w-5 h-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
                   </svg>
-                  <span className="font-sf-compact-medium text-[9.82px]">Profile</span>
+                  <span className="font-sf-compact-medium text-[9.82px]">
+                    Profile
+                  </span>
                 </button>
                 <button
                   onClick={() => {
                     setMobileMenuOpen(false);
                     setSettingsOpen(true);
                   }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-50"
+                  className="flex items-center w-full gap-3 px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-50"
+                  aria-label="Settings"
                 >
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="3"/>
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                  <svg
+                    className="w-5 h-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle cx="12" cy="12" r="3" />
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
                   </svg>
-                  <span className="font-sf-compact-medium text-[9.82px]">Settings</span>
+                  <span className="font-sf-compact-medium text-[9.82px]">
+                    Settings
+                  </span>
                 </button>
               </div>
             </nav>

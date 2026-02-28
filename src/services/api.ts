@@ -1,5 +1,5 @@
 // File: src/services/api.ts
-import { User, Todo, Post, Comment, DashboardStats } from "@/types/navigation.types";
+import { Comment, DashboardStats, Post, Todo, User } from "@/types";
 
 const API = {
   users: "https://reqres.in/api/users",

@@ -7,7 +7,7 @@ interface SkeletonBlockProps {
   className?: string;
 }
 
-export const SkeletonBlock: React.FC<SkeletonBlockProps> = ({
+const SkeletonBlock: React.FC<SkeletonBlockProps> = ({
   width = "w-full",
   height = "h-4",
   className = "",
@@ -18,4 +18,6 @@ export const SkeletonBlock: React.FC<SkeletonBlockProps> = ({
     />
   );
 };
+
+
 export default SkeletonBlock;

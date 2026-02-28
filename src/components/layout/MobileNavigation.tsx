@@ -4,11 +4,21 @@
 import { useAuth } from "@/context/AuthContext";
 import { useChat } from "@/context/ChatContext";
 import { users } from "@/data/dummyData";
-import React, { useState } from "react";
+import Image from "next/image";
+import React, { useCallback, useState } from "react";
 
 interface MobileNavigationProps {
   currentView: "chats" | "chat" | "settings";
   onViewChange: (view: "chats" | "chat" | "settings") => void;
+}
+
+// Define interface for the selected user
+interface SelectedUser {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  avatar?: string;
 }
 
 export const MobileNavigation: React.FC<MobileNavigationProps> = ({
@@ -29,6 +39,11 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
     bio: "",
   });
 
+  // FIXED: Generate unique ID helper - moved to useCallback
+  const generateId = useCallback((prefix: string): string => {
+    return `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+  }, []);
+
   // Filter users based on search
   const filteredUsers = users.filter(
     (u) =>
@@ -42,10 +57,14 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
     setSearchQuery(e.target.value);
   };
 
-  const handleSelectUser = (selectedUser: any) => {
+  // FIXED: Properly typed selectedUser parameter
+  const handleSelectUser = (selectedUser: SelectedUser) => {
+    // Generate unique ID using helper
+    const chatId = generateId("chat");
+
     // Create a chat with selected user
     const newChat = {
-      id: `chat-${Date.now()}`,
+      id: chatId,
       name: `${selectedUser.firstName} ${selectedUser.lastName}`,
       participants: [user, selectedUser],
       lastMessage: {
@@ -73,9 +92,13 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
 
   const handleAddNewUser = () => {
     if (newUser.name && newUser.email) {
+      // Generate unique IDs using helper
+      const userId = generateId("user");
+      const chatId = generateId("chat");
+
       // Create new user
       const newUserObj = {
-        id: `user-${Date.now()}`,
+        id: userId,
         firstName: newUser.name.split(" ")[0] || newUser.name,
         lastName: newUser.name.split(" ")[1] || "",
         email: newUser.email,
@@ -93,7 +116,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
 
       // Create chat with new user
       const newChat = {
-        id: `chat-${Date.now()}`,
+        id: chatId,
         name: newUserObj.firstName + " " + newUserObj.lastName,
         participants: [user, newUserObj],
         lastMessage: {
@@ -132,12 +155,15 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
             className={`flex flex-col items-center p-2 rounded-lg transition-colors ${
               currentView === "chats" ? "text-blue-600" : "text-gray-500"
             }`}
+            aria-label="Chats"
+            aria-current={currentView === "chats" ? "page" : undefined}
           >
             <svg
               className="w-6 h-6"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"
@@ -157,12 +183,14 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
               setSearchQuery("");
             }}
             className="flex flex-col items-center p-2 text-gray-500 rounded-lg"
+            aria-label="New chat"
           >
             <svg
               className="w-6 h-6"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"
@@ -180,12 +208,15 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
             className={`flex flex-col items-center p-2 rounded-lg transition-colors ${
               currentView === "settings" ? "text-blue-600" : "text-gray-500"
             }`}
+            aria-label="Settings"
+            aria-current={currentView === "settings" ? "page" : undefined}
           >
             <svg
               className="w-6 h-6"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <circle cx="12" cy="12" r="3" />
               <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
@@ -217,12 +248,14 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
                   setShowAddUserForm(false);
                   setSearchQuery("");
                 }}
+                aria-label="Close modal"
               >
                 <svg
                   className="w-6 h-6 text-gray-500"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
+                  aria-hidden="true"
                 >
                   <path
                     strokeLinecap="round"
@@ -242,7 +275,8 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
                   value={searchQuery}
                   onChange={handleSearch}
                   placeholder="Search users..."
-                  className="w-full px-4 py-3 mb-4 text-sm bg-gray-100 rounded-lg"
+                  className="w-full px-4 py-3 mb-4 text-sm bg-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  aria-label="Search users"
                   autoFocus
                 />
 
@@ -254,16 +288,20 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
                         key={u.id}
                         onClick={() => handleSelectUser(u)}
                         className="flex items-center w-full gap-3 p-3 transition-colors rounded-lg hover:bg-gray-50"
+                        aria-label={`Select ${u.firstName} ${u.lastName}`}
                       >
-                        <div className="flex items-center justify-center w-10 h-10 text-sm font-semibold text-white bg-blue-500 rounded-full">
+                        <div className="flex items-center justify-center w-10 h-10 overflow-hidden text-sm font-semibold text-white bg-blue-500 rounded-full">
                           {u.avatar ? (
-                            <img
+                            // FIXED: Replaced img with Next.js Image
+                            <Image
                               src={u.avatar}
                               alt={u.firstName}
+                              width={40}
+                              height={40}
                               className="object-cover w-full h-full rounded-full"
                             />
                           ) : (
-                            `${u.firstName[0]}${u.lastName[0]}`
+                            <span>{`${u.firstName[0]}${u.lastName[0]}`}</span>
                           )}
                         </div>
                         <div className="flex-1 text-left">
@@ -285,6 +323,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
                 <button
                   onClick={() => setShowAddUserForm(true)}
                   className="w-full py-3 text-sm font-medium text-blue-600 border-t border-gray-200 rounded-lg hover:bg-gray-50"
+                  aria-label="Add new contact"
                 >
                   + Add new contact
                 </button>
@@ -293,59 +332,75 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
               /* Add New User Form */
               <div className="space-y-4">
                 <div>
-                  <label className="block mb-1 text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="full-name"
+                    className="block mb-1 text-sm font-medium text-gray-700"
+                  >
                     Full Name *
                   </label>
                   <input
+                    id="full-name"
                     type="text"
                     value={newUser.name}
                     onChange={(e) =>
                       setNewUser({ ...newUser, name: e.target.value })
                     }
                     placeholder="John Doe"
-                    className="w-full px-3 py-2 text-sm border rounded-lg"
+                    className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     autoFocus
                   />
                 </div>
                 <div>
-                  <label className="block mb-1 text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="email"
+                    className="block mb-1 text-sm font-medium text-gray-700"
+                  >
                     Email *
                   </label>
                   <input
+                    id="email"
                     type="email"
                     value={newUser.email}
                     onChange={(e) =>
                       setNewUser({ ...newUser, email: e.target.value })
                     }
                     placeholder="john@example.com"
-                    className="w-full px-3 py-2 text-sm border rounded-lg"
+                    className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block mb-1 text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="phone"
+                    className="block mb-1 text-sm font-medium text-gray-700"
+                  >
                     Phone
                   </label>
                   <input
+                    id="phone"
                     type="tel"
                     value={newUser.phone}
                     onChange={(e) =>
                       setNewUser({ ...newUser, phone: e.target.value })
                     }
                     placeholder="+1 (555) 000-0000"
-                    className="w-full px-3 py-2 text-sm border rounded-lg"
+                    className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block mb-1 text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="bio"
+                    className="block mb-1 text-sm font-medium text-gray-700"
+                  >
                     Bio
                   </label>
                   <textarea
+                    id="bio"
                     value={newUser.bio}
                     onChange={(e) =>
                       setNewUser({ ...newUser, bio: e.target.value })
                     }
                     placeholder="Short description..."
-                    className="w-full px-3 py-2 text-sm border rounded-lg"
+                    className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     rows={2}
                   />
                 </div>
@@ -354,7 +409,8 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
                   <button
                     onClick={handleAddNewUser}
                     disabled={!newUser.name || !newUser.email}
-                    className="flex-1 py-3 text-sm font-medium text-white bg-blue-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 py-3 text-sm font-medium text-white transition-colors bg-blue-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700"
+                    aria-label="Add contact"
                   >
                     Add Contact
                   </button>
@@ -363,7 +419,8 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
                       setShowAddUserForm(false);
                       setNewUser({ name: "", email: "", phone: "", bio: "" });
                     }}
-                    className="flex-1 py-3 text-sm font-medium border border-gray-300 rounded-lg"
+                    className="flex-1 py-3 text-sm font-medium transition-colors border border-gray-300 rounded-lg hover:bg-gray-50"
+                    aria-label="Cancel"
                   >
                     Cancel
                   </button>

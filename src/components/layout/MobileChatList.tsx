@@ -4,24 +4,75 @@
 import { useAuth } from "@/context/AuthContext";
 import { useChat } from "@/context/ChatContext";
 import { channels } from "@/data/dummyData";
-import React, { useEffect, useState } from "react";
+import { User } from "@/types";
+import Image from "next/image";
+import React, { useCallback, useEffect, useState } from "react";
+
+// Define interfaces for proper typing
+interface Participant extends Partial<User> {
+  id: string;
+  status?: "online" | "offline" | "away";
+}
+
+interface LastMessage {
+  senderId: string;
+  content: string;
+  timestamp?: string;
+  attachments?: Array<{
+    name: string;
+    url: string;
+    size: number;
+    type: string;
+  }>;
+}
+
+interface ChatItem {
+  id: string;
+  name: string;
+  participants: Participant[];
+  unreadCount: number;
+  timestamp: string;
+  lastMessage: LastMessage;
+  isGroup?: boolean;
+}
+
+interface Channel {
+  id: string;
+  name: string;
+  color: string;
+  unread: number;
+}
 
 export const MobileChatList: React.FC = () => {
   const { user } = useAuth();
   const { chats, setSelectedChat } = useChat();
   const [searchInput, setSearchInput] = useState("");
   const [activeTab, setActiveTab] = useState<"all" | "channels">("all");
-  const [filteredChats, setFilteredChats] = useState(chats);
-  const [filteredChannels, setFilteredChannels] = useState(channels);
+  const [filteredChats, setFilteredChats] = useState<ChatItem[]>(
+    chats as ChatItem[],
+  );
+  const [filteredChannels, setFilteredChannels] = useState<Channel[]>(channels);
+
+  // FIXED: Generate unique ID helper - moved outside render to avoid impure function warnings
+  const generateChannelIds = useCallback((channelName: string) => {
+    const timestamp = Date.now();
+    const uniqueSuffix = Math.random().toString(36).substring(2, 7);
+    return {
+      chatId: `channel-${channelName}-${timestamp}-${uniqueSuffix}`,
+      message1Id: `channel-${channelName}-${timestamp}-1-${uniqueSuffix}`,
+      message2Id: `channel-${channelName}-${timestamp}-2-${uniqueSuffix}`,
+      lastMessageId: `last-${channelName}-${timestamp}-${uniqueSuffix}`,
+    };
+  }, []);
 
   // Filter chats based on search input
   useEffect(() => {
     if (searchInput.trim() === "") {
-      setFilteredChats(chats);
+      setFilteredChats(chats as ChatItem[]);
       setFilteredChannels(channels);
     } else {
       // Filter chats
-      const chatResults = chats.filter(
+      const chatResults = (chats as ChatItem[]).filter(
         (chat) =>
           chat.name.toLowerCase().includes(searchInput.toLowerCase()) ||
           chat.lastMessage.content
@@ -46,7 +97,7 @@ export const MobileChatList: React.FC = () => {
     setSearchInput("");
   };
 
-  const getInitials = (name: string) => {
+  const getInitials = (name: string): string => {
     return name
       .split(" ")
       .map((n) => n[0])
@@ -55,7 +106,18 @@ export const MobileChatList: React.FC = () => {
       .toUpperCase();
   };
 
-  const getAvatarColor = (name: string) => {
+  // FIXED: Color mapping to avoid inline styles
+  const getChannelColorClass = (color: string): string => {
+    const colorMap: Record<string, string> = {
+      "#10B981": "bg-emerald-500",
+      "#F59E0B": "bg-amber-500",
+      "#8B5CF6": "bg-purple-500",
+      "#EC4899": "bg-pink-500",
+    };
+    return colorMap[color] || "bg-gray-500";
+  };
+
+  const getAvatarColor = (name: string): string => {
     const colors = [
       "bg-blue-500",
       "bg-purple-500",
@@ -68,24 +130,27 @@ export const MobileChatList: React.FC = () => {
     return colors[index];
   };
 
-  // FIXED: Channel selection now creates proper channel chat
+  // FIXED: Channel selection with proper ID generation (no impure functions in render)
   const handleChannelSelect = (
     channelName: string,
     channelColor: string,
     unreadCount: number,
   ) => {
+    // Generate IDs using the helper - this runs in event handler, not render
+    const ids = generateChannelIds(channelName);
+
     // Try to find existing channel chat
-    let chat = chats.find(
+    let chat = (chats as ChatItem[]).find(
       (c) => c.name === channelName || c.name.includes(channelName),
     );
 
     // If no channel chat exists, create a proper channel chat
     if (!chat) {
-      // Create channel-specific messages
+      // Create channel-specific messages with generated IDs
       const channelMessages = [
         {
-          id: `channel-${Date.now()}-1`,
-          chatId: `channel-${channelName}-${Date.now()}`,
+          id: ids.message1Id,
+          chatId: ids.chatId,
           senderId: "system",
           senderName: "System",
           content: `Welcome to the ${channelName} channel!`,
@@ -98,8 +163,8 @@ export const MobileChatList: React.FC = () => {
           isUser: false,
         },
         {
-          id: `channel-${Date.now()}-2`,
-          chatId: `channel-${channelName}-${Date.now()}`,
+          id: ids.message2Id,
+          chatId: ids.chatId,
           senderId: "announcement",
           senderName: "Announcements",
           content: `This channel has ${unreadCount} new messages`,
@@ -114,12 +179,12 @@ export const MobileChatList: React.FC = () => {
       ];
 
       chat = {
-        id: `channel-${channelName}-${Date.now()}`,
+        id: ids.chatId,
         name: channelName,
         participants: [], // Channels don't have individual participants
         lastMessage: {
-          id: `last-${Date.now()}`,
-          chatId: `channel-${channelName}-${Date.now()}`,
+          id: ids.lastMessageId,
+          chatId: ids.chatId,
           senderId: "system",
           senderName: "System",
           content: `Welcome to ${channelName}`,
@@ -165,12 +230,14 @@ export const MobileChatList: React.FC = () => {
               onChange={handleSearch}
               placeholder="Search chats or channels..."
               className="w-full pl-10 pr-10 py-2.5 bg-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              aria-label="Search chats or channels"
             />
             <svg
               className="absolute w-4 h-4 text-gray-400 left-3 top-3"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"
@@ -180,12 +247,17 @@ export const MobileChatList: React.FC = () => {
               />
             </svg>
             {searchInput && (
-              <button onClick={clearSearch} className="absolute right-3 top-3">
+              <button
+                onClick={clearSearch}
+                className="absolute right-3 top-3"
+                aria-label="Clear search"
+              >
                 <svg
                   className="w-4 h-4 text-gray-400 hover:text-gray-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
+                  aria-hidden="true"
                 >
                   <path
                     strokeLinecap="round"
@@ -206,6 +278,8 @@ export const MobileChatList: React.FC = () => {
             className={`flex-1 py-3 text-sm font-medium relative ${
               activeTab === "all" ? "text-blue-600" : "text-gray-500"
             }`}
+            aria-label="All Chats"
+            aria-current={activeTab === "all" ? "page" : undefined}
           >
             All Chats
             {activeTab === "all" && (
@@ -217,6 +291,8 @@ export const MobileChatList: React.FC = () => {
             className={`flex-1 py-3 text-sm font-medium relative ${
               activeTab === "channels" ? "text-blue-600" : "text-gray-500"
             }`}
+            aria-label="Channels"
+            aria-current={activeTab === "channels" ? "page" : undefined}
           >
             Channels
             {activeTab === "channels" && (
@@ -229,11 +305,11 @@ export const MobileChatList: React.FC = () => {
         {searchInput && (
           <div className="px-4 py-2 border-b border-gray-200 bg-gray-50">
             <p className="text-xs text-gray-500">
-              Found{" "}
-              {activeTab === "all"
-                ? filteredChats.length
-                : filteredChannels.length}{" "}
-              results
+              {`Found ${
+                activeTab === "all"
+                  ? filteredChats.length
+                  : filteredChannels.length
+              } results`}
             </p>
           </div>
         )}
@@ -245,9 +321,10 @@ export const MobileChatList: React.FC = () => {
           // All Chats View
           filteredChats.length > 0 ? (
             <div className="divide-y divide-gray-100">
-              {filteredChats.map((chat) => {
-                const otherParticipant = chat.participants.find(
-                  (p) => p.id !== user?.id,
+              {filteredChats.map((chat: ChatItem) => {
+                // FIXED: Properly typed participant
+                const otherParticipant = chat.participants?.find(
+                  (participant: Participant) => participant.id !== user?.id,
                 );
                 const initials = getInitials(chat.name);
                 const avatarColor = getAvatarColor(chat.name);
@@ -259,16 +336,19 @@ export const MobileChatList: React.FC = () => {
                     className="flex items-center gap-3 px-4 py-3 transition-colors cursor-pointer active:bg-gray-50"
                   >
                     <div
-                      className={`w-12 h-12 rounded-full ${avatarColor} flex items-center justify-center text-white font-semibold flex-shrink-0`}
+                      className={`w-12 h-12 rounded-full ${avatarColor} flex items-center justify-center text-white font-semibold flex-shrink-0 overflow-hidden`}
                     >
                       {otherParticipant?.avatar ? (
-                        <img
+                        // FIXED: Replaced img with Next.js Image
+                        <Image
                           src={otherParticipant.avatar}
                           alt={chat.name}
+                          width={48}
+                          height={48}
                           className="object-cover w-full h-full rounded-full"
                         />
                       ) : (
-                        initials
+                        <span>{initials}</span>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -302,6 +382,7 @@ export const MobileChatList: React.FC = () => {
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
+                aria-hidden="true"
               >
                 <path
                   strokeLinecap="round"
@@ -311,11 +392,12 @@ export const MobileChatList: React.FC = () => {
                 />
               </svg>
               <p className="text-center text-gray-500">
-                No chats found matching "{searchInput}"
+                {`No chats found matching "${searchInput}"`}
               </p>
               <button
                 onClick={clearSearch}
                 className="mt-4 text-sm font-medium text-blue-600"
+                aria-label="Clear search"
               >
                 Clear search
               </button>
@@ -324,7 +406,7 @@ export const MobileChatList: React.FC = () => {
         ) : // Channels View - FIXED: Now opens correct channel chat
         filteredChannels.length > 0 ? (
           <div className="divide-y divide-gray-100">
-            {filteredChannels.map((channel) => (
+            {filteredChannels.map((channel: Channel) => (
               <div
                 key={channel.id}
                 onClick={() =>
@@ -336,9 +418,9 @@ export const MobileChatList: React.FC = () => {
                 }
                 className="flex items-center gap-3 px-4 py-3 transition-colors cursor-pointer active:bg-gray-50"
               >
+                {/* FIXED: Replaced inline style with className */}
                 <div
-                  className="flex items-center justify-center w-12 h-12 font-semibold text-white rounded-full"
-                  style={{ backgroundColor: channel.color }}
+                  className={`w-12 h-12 rounded-full flex items-center justify-center font-semibold text-white ${getChannelColorClass(channel.color)}`}
                 >
                   {channel.name.substring(0, 2).toUpperCase()}
                 </div>
@@ -367,6 +449,7 @@ export const MobileChatList: React.FC = () => {
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"
@@ -376,11 +459,12 @@ export const MobileChatList: React.FC = () => {
               />
             </svg>
             <p className="text-center text-gray-500">
-              No channels found matching "{searchInput}"
+              {`No channels found matching "${searchInput}"`}
             </p>
             <button
               onClick={clearSearch}
               className="mt-4 text-sm font-medium text-blue-600"
+              aria-label="Clear search"
             >
               Clear search
             </button>

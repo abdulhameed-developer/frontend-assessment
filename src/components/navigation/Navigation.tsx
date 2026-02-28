@@ -5,7 +5,7 @@ import React from 'react';
 import { NavItem } from './NavItem';
 import { NAV_ITEMS } from '@/constants/navigation.constants';
 import { useDelayedRender } from '@/hooks/useDelayedRender';
-import { SkeletonNavItem } from '@/ui/SkeletonNavItem';
+import SkeletonNavItem  from '@/ui/SkeletonNavItem';
 
 interface NavigationProps {
   onNavChange?: (id: string) => void;
