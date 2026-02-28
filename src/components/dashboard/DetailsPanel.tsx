@@ -14,8 +14,10 @@ export const DetailsPanel: React.FC = () => {
   const [newNote, setNewNote] = useState('');
   const [activeTab, setActiveTab] = useState<'details' | 'activity' | 'files'>('details');
   const [notes, setNotes] = useState(dummyContact.notes);
+  const [labels, setLabels] = useState(dummyContact.labels);
+  const [showLabelInput, setShowLabelInput] = useState(false);
+  const [newLabel, setNewLabel] = useState('');
 
-  // Determine which contact to show - either selected from contact context or from chat
   const contact = selectedContact || {
     id: selectedChat?.id || 'default',
     firstName: selectedChat?.name.split(' ')[0] || 'Olivia',
@@ -24,8 +26,7 @@ export const DetailsPanel: React.FC = () => {
     phone: selectedChat?.phone || '+1 (312) 555-0134',
     company: 'Fit4Life',
     position: 'Premium Member',
-    labels: selectedChat?.id ? ['Active', 'Premium'] : ['Closed Won', 'Chicago', 'High Value'],
-    notes: dummyContact.notes
+    labels: labels
   };
 
   const handleAddNote = () => {
@@ -47,158 +48,160 @@ export const DetailsPanel: React.FC = () => {
     }
   };
 
-  const activityItems = [
-    { id: '1', content: 'Chat started', time: '23:08', user: contact.firstName },
-    { id: '2', content: 'Email confirmation received', time: '23:16', user: 'System' },
-    { id: '3', content: 'Password reset link sent', time: '23:17', user: 'System' },
-    { id: '4', content: 'User logged in successfully', time: '23:20', user: 'System' },
-    { id: '5', content: 'Premium guide link shared', time: '23:24', user: 'Michael' },
-    { id: '6', content: 'Note added: Strong potential for future upgrades', time: '23:25', user: 'Michael' },
-  ];
+  const handleAddLabel = () => {
+    if (newLabel.trim() && !labels.includes(newLabel)) {
+      setLabels([...labels, newLabel]);
+      setNewLabel('');
+      setShowLabelInput(false);
+    }
+  };
 
-  const files = [
-    { id: '1', name: 'Premium_Guide.pdf', size: '2.4 MB', date: 'Aug 28' },
-    { id: '2', name: 'Workout_Plan.pdf', size: '1.8 MB', date: 'Aug 27' },
-    { id: '3', name: 'Welcome_Message.mp4', size: '5.2 MB', date: 'Aug 26' },
-  ];
+  const handleRemoveLabel = (labelToRemove: string) => {
+    setLabels(labels.filter(label => label !== labelToRemove));
+  };
 
   return (
-    <div className="w-full h-full bg-white flex flex-col overflow-hidden rounded-tr-[11.23px] rounded-br-[11.23px]">
+    <div className="h-full bg-white flex flex-col overflow-hidden">
       {/* Tabs */}
-      <div className="flex flex-shrink-0 px-4 pt-3 border-b border-gray-200">
+      <div className="flex border-b border-gray-200 px-4 pt-3">
         {['details', 'activity', 'files'].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab as any)}
-            className={`flex-1 pb-3 text-sm font-medium capitalize relative ${
-              activeTab === tab ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'
+            className={`flex-1 pb-3 text-sm font-medium capitalize ${
+              activeTab === tab ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'
             }`}
           >
             {tab}
-            {activeTab === tab && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600" />
-            )}
           </button>
         ))}
       </div>
 
-      <div className="flex-1 p-4 overflow-y-auto hide-scrollbar">
+      <div className="flex-1 overflow-y-auto p-4">
         {activeTab === 'details' && (
           <>
             {/* Profile Header */}
             <div className="flex items-center gap-3 mb-4">
-              <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 overflow-hidden text-lg font-semibold text-white bg-blue-500 rounded-full">
-                {contact.avatar ? (
-                  <img src={contact.avatar} alt={contact.firstName} className="object-cover w-full h-full" />
-                ) : (
-                  `${contact.firstName[0]}${contact.lastName[0]}`
-                )}
+              <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
+                {contact.firstName[0]}{contact.lastName[0]}
               </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-sf-compact-bold text-[12.63px] text-gray-900 truncate">
-                  {contact.firstName} {contact.lastName}
-                </h3>
-                <p className="font-sf-compact-regular text-[10.73px] text-gray-500 truncate">{contact.email}</p>
+              <div>
+                <h3 className="font-medium text-gray-900">{contact.firstName} {contact.lastName}</h3>
+                <p className="text-sm text-gray-500">{contact.email}</p>
               </div>
             </div>
 
             {/* Chat Data */}
             <div className="mb-4">
-              <h4 className="font-sf-compact-medium text-[9.82px] text-gray-500 uppercase mb-2">Chat Data</h4>
-              <div className="p-3 space-y-2 rounded-lg bg-gray-50">
+              <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Chat Data</h4>
+              <div className="space-y-2 bg-gray-50 p-3 rounded-lg">
                 <div className="flex justify-between">
-                  <span className="font-sf-compact-regular text-[10.73px] text-gray-500">Assignee</span>
-                  <span className="font-sf-compact-medium text-[9.82px] text-gray-900">James West</span>
+                  <span className="text-sm text-gray-500">Assignee</span>
+                  <span className="text-sm font-medium text-gray-900">James West</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="font-sf-compact-regular text-[10.73px] text-gray-500">Team</span>
-                  <span className="font-sf-compact-medium text-[9.82px] text-gray-900">Sales Team</span>
+                  <span className="text-sm text-gray-500">Team</span>
+                  <span className="text-sm font-medium text-gray-900">Sales Team</span>
                 </div>
               </div>
             </div>
 
             {/* Contact Data */}
             <div className="mb-4">
-              <h4 className="font-sf-compact-medium text-[9.82px] text-gray-500 uppercase mb-2">Contact Data</h4>
-              <div className="p-3 space-y-2 rounded-lg bg-gray-50">
+              <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Contact Data</h4>
+              <div className="space-y-2 bg-gray-50 p-3 rounded-lg">
                 <div className="flex justify-between">
-                  <span className="font-sf-compact-regular text-[10.73px] text-gray-500">First Name</span>
-                  <span className="font-sf-compact-medium text-[9.82px] text-gray-900">{contact.firstName}</span>
+                  <span className="text-sm text-gray-500">First Name</span>
+                  <span className="text-sm text-gray-900">{contact.firstName}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="font-sf-compact-regular text-[10.73px] text-gray-500">Last Name</span>
-                  <span className="font-sf-compact-medium text-[9.82px] text-gray-900">{contact.lastName}</span>
+                  <span className="text-sm text-gray-500">Last Name</span>
+                  <span className="text-sm text-gray-900">{contact.lastName}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="font-sf-compact-regular text-[10.73px] text-gray-500">Email</span>
-                  <span className="font-sf-compact-medium text-[9.82px] text-gray-900 break-all">{contact.email}</span>
+                  <span className="text-sm text-gray-500">Email</span>
+                  <span className="text-sm text-gray-900 break-all">{contact.email}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="font-sf-compact-regular text-[10.73px] text-gray-500">Phone</span>
-                  <span className="font-sf-compact-medium text-[9.82px] text-gray-900">{contact.phone}</span>
+                  <span className="text-sm text-gray-500">Phone</span>
+                  <span className="text-sm text-gray-900">{contact.phone}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="font-sf-compact-regular text-[10.73px] text-gray-500">Company</span>
-                  <span className="font-sf-compact-medium text-[9.82px] text-gray-900">{contact.company || 'Fit4Life'}</span>
+                  <span className="text-sm text-gray-500">Company</span>
+                  <span className="text-sm text-gray-900">{contact.company}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="font-sf-compact-regular text-[10.73px] text-gray-500">Position</span>
-                  <span className="font-sf-compact-medium text-[9.82px] text-gray-900">{contact.position || 'Premium Member'}</span>
+                  <span className="text-sm text-gray-500">Position</span>
+                  <span className="text-sm text-gray-900">{contact.position}</span>
                 </div>
               </div>
-              <button className="font-sf-compact-medium text-[9.82px] text-blue-600 mt-1 hover:underline">See all</button>
+              <button className="text-sm text-blue-600 mt-1">See all</button>
             </div>
 
             {/* Labels */}
             <div className="mb-4">
-              <h4 className="font-sf-compact-medium text-[9.82px] text-gray-500 uppercase mb-2">Labels</h4>
-              <div className="flex flex-wrap gap-2">
-                {contact.labels?.map((label) => (
+              <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Labels</h4>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {labels.map((label) => (
                   <span
                     key={label}
-                    className={`px-2 py-1 rounded-full text-xs ${
-                      label === 'Closed Won' ? 'bg-green-100 text-green-700' :
-                      label === 'Chicago' ? 'bg-blue-100 text-blue-700' :
-                      label === 'High Value' ? 'bg-purple-100 text-purple-700' :
-                      'bg-gray-100 text-gray-700'
-                    }`}
+                    className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs flex items-center gap-1"
                   >
                     {label}
+                    <button onClick={() => handleRemoveLabel(label)} className="ml-1 hover:text-blue-900">×</button>
                   </span>
                 ))}
-                <button className="px-2 py-1 text-xs text-gray-500 border border-gray-300 border-dashed rounded-full hover:border-blue-500 hover:text-blue-500">
-                  + Add
-                </button>
+                {showLabelInput ? (
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="text"
+                      value={newLabel}
+                      onChange={(e) => setNewLabel(e.target.value)}
+                      placeholder="New label"
+                      className="w-20 px-2 py-1 text-xs border rounded"
+                      autoFocus
+                    />
+                    <button onClick={handleAddLabel} className="px-2 py-1 bg-green-500 text-white text-xs rounded">Add</button>
+                    <button onClick={() => setShowLabelInput(false)} className="px-2 py-1 bg-gray-300 text-xs rounded">Cancel</button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowLabelInput(true)}
+                    className="px-2 py-1 border border-dashed border-gray-300 rounded-full text-xs text-gray-500 hover:border-blue-500 hover:text-blue-500"
+                  >
+                    + Add
+                  </button>
+                )}
               </div>
             </div>
 
             {/* Notes */}
             <div className="mb-4">
-              <h4 className="font-sf-compact-medium text-[9.82px] text-gray-500 uppercase mb-2">Notes</h4>
+              <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Notes</h4>
               <div className="flex gap-2 mb-3">
                 <input
                   type="text"
                   value={newNote}
                   onChange={(e) => setNewNote(e.target.value)}
                   placeholder="Add a note..."
-                  className="flex-1 px-3 py-2 bg-gray-50 rounded-lg font-sf-compact-regular text-[10.73px] text-gray-900 placeholder-gray-400 outline-none focus:ring-1 focus:ring-blue-500"
+                  className="flex-1 px-3 py-2 bg-gray-50 rounded-lg text-sm text-gray-900 placeholder-gray-400 outline-none"
                 />
                 <button
                   onClick={handleAddNote}
                   disabled={!newNote.trim()}
-                  className="px-3 py-2 bg-blue-600 text-white font-sf-compact-medium text-[9.82px] rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  className="px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50"
                 >
                   Add
                 </button>
               </div>
               <div className="space-y-2">
                 {notes.map((note) => (
-                  <div key={note.id} className="p-3 rounded-lg bg-gray-50">
-                    <p className="font-sf-compact-regular text-[10.73px] text-gray-900">{note.content}</p>
+                  <div key={note.id} className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-900">{note.content}</p>
                     <div className="flex items-center justify-between mt-2">
-                      <span className="font-sf-compact-number text-[8.42px] text-gray-500">{note.author?.name || 'Michael Johnson'}</span>
-                      <span className="font-sf-compact-number text-[8.42px] text-gray-500">
-                        {new Date(note.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      <span className="text-xs text-gray-500">{note.author?.name}</span>
+                      <span className="text-xs text-gray-500">
+                        {new Date(note.createdAt).toLocaleDateString()}
                       </span>
                     </div>
                   </div>
@@ -208,10 +211,10 @@ export const DetailsPanel: React.FC = () => {
 
             {/* Other Chats */}
             <div>
-              <h4 className="font-sf-compact-medium text-[9.82px] text-gray-500 uppercase mb-2">Other Chats</h4>
-              <div className="flex items-center justify-between p-3 transition-colors rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-                <span className="font-sf-compact-medium text-[9.82px] text-gray-900">Fit4Life</span>
-                <span className="font-sf-compact-number text-[8.42px] text-gray-500">On my way!</span>
+              <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Other Chats</h4>
+              <div className="p-3 bg-gray-50 rounded-lg flex items-center justify-between cursor-pointer hover:bg-gray-100">
+                <span className="text-sm font-medium text-gray-900">Fit4Life</span>
+                <span className="text-xs text-gray-500">On my way!</span>
               </div>
             </div>
           </>
@@ -219,19 +222,12 @@ export const DetailsPanel: React.FC = () => {
 
         {activeTab === 'activity' && (
           <div className="space-y-3">
-            <h4 className="font-sf-compact-medium text-[9.82px] text-gray-500 uppercase mb-2">Recent Activity</h4>
-            <div className="relative pl-6 space-y-4">
-              <div className="absolute left-2 top-2 bottom-2 w-0.5 bg-gray-200" />
-              {activityItems.map((item) => (
-                <div key={item.id} className="relative">
-                  <div className="absolute -left-4.5 top-1 w-2 h-2 rounded-full bg-blue-500" />
-                  <div className="p-3 rounded-lg bg-gray-50">
-                    <p className="font-sf-compact-regular text-[10.73px] text-gray-900">{item.content}</p>
-                    <div className="flex items-center justify-between mt-1">
-                      <span className="font-sf-compact-number text-[8.42px] text-gray-500">{item.user}</span>
-                      <span className="font-sf-compact-number text-[8.42px] text-gray-500">{item.time}</span>
-                    </div>
-                  </div>
+            <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Recent Activity</h4>
+            <div className="space-y-2">
+              {[1,2,3,4,5].map((i) => (
+                <div key={i} className="p-3 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-900">Activity item {i}</p>
+                  <span className="text-xs text-gray-500">Just now</span>
                 </div>
               ))}
             </div>
@@ -240,18 +236,18 @@ export const DetailsPanel: React.FC = () => {
 
         {activeTab === 'files' && (
           <div className="space-y-3">
-            <h4 className="font-sf-compact-medium text-[9.82px] text-gray-500 uppercase mb-2">Shared Files</h4>
+            <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Shared Files</h4>
             <div className="space-y-2">
-              {files.map((file) => (
-                <div key={file.id} className="flex items-center gap-3 p-2 transition-colors rounded-lg cursor-pointer hover:bg-gray-50">
-                  <div className="flex items-center justify-center w-8 h-8 bg-gray-200 rounded">
+              {[1,2,3].map((i) => (
+                <div key={i} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg">
+                  <div className="w-8 h-8 bg-gray-200 rounded flex items-center justify-center">
                     <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                     </svg>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-sf-compact-medium text-[9.82px] text-gray-900 truncate">{file.name}</p>
-                    <p className="font-sf-compact-number text-[8.42px] text-gray-500">{file.size} • {file.date}</p>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">File {i}.pdf</p>
+                    <p className="text-xs text-gray-500">2.4 MB</p>
                   </div>
                 </div>
               ))}

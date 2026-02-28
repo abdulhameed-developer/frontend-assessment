@@ -21,9 +21,11 @@ export const Header: React.FC = () => {
   const [editedUser, setEditedUser] = useState(user);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   
   const profileRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const settingsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -33,6 +35,9 @@ export const Header: React.FC = () => {
       }
       if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
         setMobileMenuOpen(false);
+      }
+      if (settingsRef.current && !settingsRef.current.contains(event.target as Node)) {
+        setSettingsOpen(false);
       }
     };
 
@@ -44,10 +49,22 @@ export const Header: React.FC = () => {
     const handleCloseDropdowns = () => {
       setProfileOpen(false);
       setEditMode(false);
+      setSettingsOpen(false);
     };
 
     document.addEventListener('closeAllDropdowns', handleCloseDropdowns);
     return () => document.removeEventListener('closeAllDropdowns', handleCloseDropdowns);
+  }, []);
+
+  // Listen for openProfileEdit event
+  useEffect(() => {
+    const handleOpenProfileEdit = () => {
+      setProfileOpen(true);
+      setEditMode(true);
+    };
+
+    document.addEventListener('openProfileEdit', handleOpenProfileEdit);
+    return () => document.removeEventListener('openProfileEdit', handleOpenProfileEdit);
   }, []);
 
   if (!user) return null;
@@ -107,8 +124,8 @@ export const Header: React.FC = () => {
 
   return (
     <>
-      <header className="fixed z-50 w-full top-1">
-        <div className="w-full lg:w-[1188.77px] lg:mx-auto px-4 lg:px-0">
+      <header className="fixed top-0 left-0 right-0 z-50 w-full">
+        <div className="w-full lg:w-[1185px] lg:mx-auto px-4 lg:px-0 lg:py-3">
           {/* Main Header Container - Exact dimensions */}
           <div 
             className="w-full lg:w-[1188.77px] h-[39.3px] bg-white rounded-[11.23px] py-[7.02px] px-[11.23px] flex items-center justify-between gap-[5.61px] mx-auto"
@@ -166,25 +183,87 @@ export const Header: React.FC = () => {
 
             {/* Right Section */}
             <div className="flex items-center gap-[5.61px]">
-              {/* Settings Icon - Double Border */}
-              <button className="relative w-[29.47px] h-[25.26px] group">
-                {/* Outer Border */}
-                <div className="absolute inset-0 border border-gray-300 rounded-[5.61px] group-hover:border-blue-600 transition-colors" />
-                {/* Inner Border */}
-                <div className="absolute inset-[3px] border border-gray-400 rounded-[4px] flex items-center justify-center group-hover:border-blue-600 transition-colors">
-                  <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="10" cy="10" r="1.5" fill="#1F2937"/>
-                    <circle cx="10" cy="4" r="1.5" fill="#1F2937"/>
-                    <circle cx="10" cy="16" r="1.5" fill="#1F2937"/>
-                    <circle cx="16" cy="10" r="1.5" fill="#1F2937"/>
-                    <circle cx="4" cy="10" r="1.5" fill="#1F2937"/>
-                    <circle cx="14" cy="6" r="1.5" fill="#1F2937"/>
-                    <circle cx="6" cy="14" r="1.5" fill="#1F2937"/>
-                    <circle cx="14" cy="14" r="1.5" fill="#1F2937"/>
-                    <circle cx="6" cy="6" r="1.5" fill="#1F2937"/>
-                  </svg>
-                </div>
-              </button>
+              {/* Settings Icon - Now Functional */}
+              <div className="relative" ref={settingsRef}>
+                <button 
+                  onClick={() => setSettingsOpen(!settingsOpen)}
+                  className="relative w-[29.47px] h-[25.26px] group"
+                >
+                  {/* Outer Border */}
+                  <div className="absolute inset-0 border border-gray-300 rounded-[5.61px] group-hover:border-blue-600 transition-colors" />
+                  {/* Inner Border */}
+                  <div className="absolute inset-[3px] border border-gray-400 rounded-[4px] flex items-center justify-center group-hover:border-blue-600 transition-colors">
+                    <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="10" cy="10" r="1.5" fill="#1F2937"/>
+                      <circle cx="10" cy="4" r="1.5" fill="#1F2937"/>
+                      <circle cx="10" cy="16" r="1.5" fill="#1F2937"/>
+                      <circle cx="16" cy="10" r="1.5" fill="#1F2937"/>
+                      <circle cx="4" cy="10" r="1.5" fill="#1F2937"/>
+                      <circle cx="14" cy="6" r="1.5" fill="#1F2937"/>
+                      <circle cx="6" cy="14" r="1.5" fill="#1F2937"/>
+                      <circle cx="14" cy="14" r="1.5" fill="#1F2937"/>
+                      <circle cx="6" cy="6" r="1.5" fill="#1F2937"/>
+                    </svg>
+                  </div>
+                </button>
+
+                {/* Settings Dropdown */}
+                {settingsOpen && (
+                  <div className="absolute right-0 z-50 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl w-48 animate-fadeIn">
+                    <div className="py-1">
+                      <button
+                        onClick={() => {
+                          setSettingsOpen(false);
+                          setProfileOpen(true);
+                        }}
+                        className="w-full px-4 py-2 text-left font-sf-compact-medium text-[9.82px] hover:bg-gray-50"
+                      >
+                        Profile Settings
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSettingsOpen(false);
+                          // Add notification settings
+                          alert('Notification settings');
+                        }}
+                        className="w-full px-4 py-2 text-left font-sf-compact-medium text-[9.82px] hover:bg-gray-50"
+                      >
+                        Notifications
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSettingsOpen(false);
+                          // Add privacy settings
+                          alert('Privacy settings');
+                        }}
+                        className="w-full px-4 py-2 text-left font-sf-compact-medium text-[9.82px] hover:bg-gray-50"
+                      >
+                        Privacy
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSettingsOpen(false);
+                          // Add help
+                          alert('Help & Support');
+                        }}
+                        className="w-full px-4 py-2 text-left font-sf-compact-medium text-[9.82px] hover:bg-gray-50"
+                      >
+                        Help & Support
+                      </button>
+                      <div className="my-1 border-t border-gray-200"></div>
+                      <button
+                        onClick={() => {
+                          setSettingsOpen(false);
+                          logout();
+                        }}
+                        className="w-full px-4 py-2 text-left font-sf-compact-medium text-[9.82px] text-red-600 hover:bg-red-50"
+                      >
+                        Sign Out
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* User Profile */}
               <div className="relative profile-container" ref={profileRef}>
@@ -410,19 +489,19 @@ export const Header: React.FC = () => {
       {mobileMenuOpen && (
         <>
           <div
-            className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
+            className="fixed inset-0 z-40 bg-black bg-opacity-50 backdrop-blur-sm lg:hidden"
             onClick={() => setMobileMenuOpen(false)}
           />
           <div 
             ref={mobileMenuRef}
-            className="fixed bottom-0 left-0 z-50 w-64 bg-white shadow-lg top-16 lg:hidden animate-slideIn"
+            className="fixed top-0 left-0 z-50 w-64 h-full bg-white shadow-lg lg:hidden animate-slideIn"
           >
             <div className="p-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <span className="font-poppins-bold text-[12.63px] text-[#1A1D1F]">
                   BOX<span className="text-blue-600">pad</span>
                 </span>
-                <button onClick={() => setMobileMenuOpen(false)}>
+                <button onClick={() => setMobileMenuOpen(false)} className="p-1 hover:bg-gray-100 rounded-lg">
                   <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
@@ -443,9 +522,39 @@ export const Header: React.FC = () => {
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}
                 >
+                  <span className={`w-5 h-5 ${activeNav === item.id ? 'text-blue-600' : 'text-gray-400'}`}>
+                    {item.icon}
+                  </span>
                   <span className="font-sf-compact-medium text-[9.82px]">{item.label}</span>
                 </button>
               ))}
+              <div className="pt-4 mt-4 border-t border-gray-200">
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setProfileOpen(true);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-50"
+                >
+                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  <span className="font-sf-compact-medium text-[9.82px]">Profile</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setSettingsOpen(true);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-50"
+                >
+                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                  </svg>
+                  <span className="font-sf-compact-medium text-[9.82px]">Settings</span>
+                </button>
+              </div>
             </nav>
           </div>
         </>

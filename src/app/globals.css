@@ -1,4 +1,4 @@
-/* File: src/app/globals.css */
+/* File: src/app/globals.css - Add these scrollbar styles */
 @import 'tailwindcss';
 
 @theme {
@@ -9,101 +9,74 @@
   --color-background: #f9fafb;
 }
 
-@layer base {
-  /* Custom font classes with exact specifications */
-  .font-poppins-bold {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 700;
-    font-size: 12.63px;
-    line-height: 100%;
-    letter-spacing: 0%;
-  }
-
-  .font-sf-compact-medium {
-    font-family: 'SF Compact', -apple-system, BlinkMacSystemFont, sans-serif;
-    font-weight: 556;
-    font-size: 9.82px;
-    line-height: 100%;
-    letter-spacing: 0%;
-  }
-
-  .font-sf-compact-regular {
-    font-family: 'SF Compact', -apple-system, BlinkMacSystemFont, sans-serif;
-    font-weight: 457;
-    font-size: 10.73px;
-    line-height: 100%;
-    letter-spacing: 0%;
-  }
-
-  .font-sf-compact-number {
-    font-family: 'SF Compact', -apple-system, BlinkMacSystemFont, sans-serif;
-    font-weight: 457;
-    font-size: 8.42px;
-    line-height: 100%;
-    letter-spacing: 0%;
-    text-align: center;
-  }
-
-  .font-sf-compact-bold {
-    font-family: 'SF Compact', -apple-system, BlinkMacSystemFont, sans-serif;
-    font-weight: 790;
-    font-size: 12.63px;
-    line-height: 100%;
-    letter-spacing: 0%;
-  }
-
-  .font-sf-compact-channel {
-    font-family: 'SF Compact', -apple-system, BlinkMacSystemFont, sans-serif;
-    font-weight: 556;
-    font-size: 9.82px;
-    line-height: 100%;
-    letter-spacing: 0%;
-  }
-
-  .font-sf-compact-channel-text {
-    font-family: 'SF Compact', -apple-system, BlinkMacSystemFont, sans-serif;
-    font-weight: 457;
-    font-size: 9.82px;
-    line-height: 100%;
-    letter-spacing: 0%;
-  }
-
-  .font-inter-semibold {
-    font-family: 'Inter', sans-serif;
-    font-weight: 600;
-    font-size: 9.82px;
-    line-height: 100%;
-    letter-spacing: 0%;
-  }
+/* Custom font classes */
+.font-poppins-bold {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 12.63px;
+  line-height: 100%;
+  letter-spacing: 0%;
 }
 
+.font-sf-compact-medium {
+  font-family: 'SF Compact', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 556;
+  font-size: 9.82px;
+  line-height: 100%;
+  letter-spacing: 0%;
+}
+
+.font-inter-semibold {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 9.82px;
+  line-height: 100%;
+  letter-spacing: 0%;
+}
+
+/* Thin scrollbar - 1.5px */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 1.5px;
+  height: 1.5px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 0;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Hide scrollbar but keep functionality */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Animations */
 @keyframes slideIn {
-  from {
-    transform: translateX(-100%);
-  }
-  to {
-    transform: translateX(0);
-  }
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: .5;
-  }
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-slideIn {
@@ -114,23 +87,7 @@
   animation: fadeIn 0.2s ease-out;
 }
 
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* Hide scrollbar but keep functionality - for all browsers */
-.hide-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;      /* Firefox */
-}
-
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;              /* Chrome, Safari, Opera */
-  width: 0;
-  height: 0;
-}
-
-/* Ensure full height and no margins */
+/* Ensure full height */
 html, body {
   height: 100%;
   margin: 0;
@@ -138,25 +95,7 @@ html, body {
   overflow: hidden;
 }
 
-/* Fix for chat window movement */
 .flex-1 {
   min-width: 0;
   min-height: 0;
-}
-
-/* Mobile styles */
-@media (max-width: 1023px) {
-  .lg\:border-r {
-    border-right: none;
-  }
-  
-  .lg\:border-l {
-    border-left: none;
-  }
-  
-  /* Mobile full width */
-  .mobile-full {
-    width: 100% !important;
-    max-width: 100% !important;
-  }
 }
