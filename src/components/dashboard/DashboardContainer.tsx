@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { useDelayedRender } from '@/hooks/useDelayedRender';
-import { SkeletonBlock } from '@/ui/SkeletonBlock';
+import SkeletonBlock from '@/ui/SkeletonBlock';
 import SkeletonText from '@/ui/SkeletonText';
 import SkeletonAvatar from '@/ui/SkeletonAvatar';
 import { classNames } from '@/utils/classNames';

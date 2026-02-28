@@ -3,7 +3,8 @@
 
 import { useChat } from "@/context/ChatContext";
 import { channels, stats, teamMembers } from "@/data/dummyData";
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
+import { Chat } from "@/types";
 
 // Define types for better type safety
 interface CollapsibleSectionProps {
@@ -77,101 +78,86 @@ export const InboxSidebar: React.FC = () => {
     }
   };
 
-  // FIXED: Use useCallback to create a stable reference to the event handler
-  // This tells React and the linter that this function is memoized and stable
-  const handleChannelClick = useCallback(
-    (channelName: string) => {
-      setSelected(channelName);
+  // FIXED: Channel selection with proper Chat object creation
+  const handleChannelSelect = (channelName: string) => {
+    setSelected(channelName);
 
-      // Use setTimeout to defer the impure operations
-      // This moves them completely out of the event handler's synchronous execution
-      // and into a macrotask, which definitely doesn't run during render
-      setTimeout(() => {
-        // Try to find existing channel chat
-        const existingChat = filteredChats.find(
-          (c) => c.name === channelName || c.name.includes(channelName),
-        );
+    // Try to find existing channel chat
+    const existingChat = filteredChats.find(
+      (c) => c.name === channelName || c.name.includes(channelName),
+    );
 
-        if (existingChat) {
-          setSelectedChat(existingChat);
-          return;
-        }
+    if (existingChat) {
+      setSelectedChat(existingChat);
+      return;
+    }
 
-        // Generate unique identifiers - now in a setTimeout callback
-        // This is guaranteed to not run during render
-        const timestamp = Date.now();
-        const uniqueSuffix = Math.random().toString(36).substring(2, 7);
+    // Create a new channel chat with all required fields
+    const timestamp = Date.now();
+    const uniqueSuffix = Math.random().toString(36).substring(2, 7);
+    const chatId = `channel-${channelName}-${timestamp}-${uniqueSuffix}`;
+    const now = new Date().toISOString();
+    const currentTime = new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
 
-        // Create messages
-        const messages = [
-          {
-            id: `channel-${channelName}-${timestamp}-1-${uniqueSuffix}`,
-            chatId: `channel-${channelName}-${timestamp}-${uniqueSuffix}`,
-            senderId: "system",
-            senderName: "System",
-            content: `Welcome to the ${channelName} channel!`,
-            timestamp: new Date(timestamp).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-            type: "system" as const,
-            status: "read" as const,
-            isUser: false,
-          },
-          {
-            id: `channel-${channelName}-${timestamp}-2-${uniqueSuffix}`,
-            chatId: `channel-${channelName}-${timestamp}-${uniqueSuffix}`,
-            senderId: "announcement",
-            senderName: "Announcements",
-            content: `This channel has ${channelName === "Fit4Life" ? "3" : channelName === "Fit4Life Support" ? "2" : channelName === "Premium Members" ? "5" : "1"} new messages`,
-            timestamp: new Date(timestamp).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-            type: "text" as const,
-            status: "read" as const,
-            isUser: false,
-          },
-        ];
+    // Create channel messages
+    const channelMessages = [
+      {
+        id: `channel-${channelName}-${timestamp}-1-${uniqueSuffix}`,
+        chatId: chatId,
+        senderId: "system",
+        senderName: "System",
+        content: `Welcome to the ${channelName} channel!`,
+        timestamp: currentTime,
+        type: "system" as const,
+        status: "read" as const,
+        isUser: false,
+      },
+      {
+        id: `channel-${channelName}-${timestamp}-2-${uniqueSuffix}`,
+        chatId: chatId,
+        senderId: "announcement",
+        senderName: "Announcements",
+        content: `This channel has ${
+          channelName === "Fit4Life"
+            ? "3"
+            : channelName === "Fit4Life Support"
+              ? "2"
+              : channelName === "Premium Members"
+                ? "5"
+                : "1"
+        } new messages`,
+        timestamp: currentTime,
+        type: "text" as const,
+        status: "read" as const,
+        isUser: false,
+      },
+    ];
 
-        const chatId = `channel-${channelName}-${timestamp}-${uniqueSuffix}`;
-        const lastMessageId = `last-${channelName}-${timestamp}-${uniqueSuffix}`;
+    // Create complete Chat object with all required fields
+    const newChat: Chat = {
+      id: chatId,
+      name: channelName,
+      participants: [],
+      lastMessage: channelMessages[0],
+      timestamp: currentTime,
+      unreadCount: channels.find((c) => c.name === channelName)?.unread || 0,
+      initials: channelName
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .substring(0, 2)
+        .toUpperCase(),
+      messages: channelMessages,
+      isGroup: true,
+      createdAt: now,
+      updatedAt: now,
+    };
 
-        const newChat = {
-          id: chatId,
-          name: channelName,
-          participants: [],
-          lastMessage: {
-            id: lastMessageId,
-            chatId: chatId,
-            senderId: "system",
-            senderName: "System",
-            content: `Welcome to ${channelName}`,
-            timestamp: "now",
-            type: "system",
-            status: "read",
-            isUser: false,
-          },
-          timestamp: "now",
-          unreadCount:
-            channels.find((c) => c.name === channelName)?.unread || 0,
-          initials: channelName
-            .split(" ")
-            .map((n) => n[0])
-            .join("")
-            .substring(0, 2)
-            .toUpperCase(),
-          messages: messages,
-          isGroup: true,
-          createdAt: new Date(timestamp).toISOString(),
-          updatedAt: new Date(timestamp).toISOString(),
-        };
-
-        setSelectedChat(newChat);
-      }, 0);
-    },
-    [filteredChats, setSelectedChat],
-  ); // Add dependencies
+    setSelectedChat(newChat);
+  };
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-white">
@@ -258,7 +244,7 @@ export const InboxSidebar: React.FC = () => {
           {channels.map((channel) => (
             <div
               key={channel.id}
-              onClick={() => handleChannelClick(channel.name)}
+              onClick={() => handleChannelSelect(channel.name)}
               className={`flex items-center justify-between py-1.5 px-3 rounded cursor-pointer ${
                 selected === channel.name ? "bg-blue-50" : "hover:bg-gray-50"
               }`}

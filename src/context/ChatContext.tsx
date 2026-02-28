@@ -1,15 +1,15 @@
 // File: src/context/ChatContext.tsx
 "use client";
 
-import { chats as initialChats, users } from "@/data/dummyData";
-import { Chat, Message } from "@/types";
 import React, {
   createContext,
-  ReactNode,
   useContext,
-  useEffect,
   useState,
+  useEffect,
+  ReactNode,
 } from "react";
+import { Chat, Message, User } from "@/types";
+import { chats as initialChats, users, currentUser } from "@/data/dummyData";
 import { useAuth } from "./AuthContext";
 
 interface ChatContextType {
@@ -251,38 +251,51 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     );
   };
 
+  // FIXED: createGroupChat now returns complete Chat object with all required fields
   const createGroupChat = (name: string, participantIds: string[]) => {
     const participants = users.filter((u) => participantIds.includes(u.id));
     participants.push(user!);
 
+    const now = new Date().toISOString();
+    const chatId = `chat-group-${Date.now()}`;
+    const initials = name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase();
+
+    const newMessage: Message = {
+      id: `msg-${Date.now()}`,
+      chatId,
+      senderId: user!.id,
+      senderName: `${user!.firstName} ${user!.lastName}`,
+      content: "Group created",
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      type: "system",
+      status: "read",
+      isUser: true,
+    };
+
     const newChat: Chat = {
-      id: `chat-group-${Date.now()}`,
+      id: chatId,
       name,
       participants,
-      lastMessage: {
-        id: `msg-${Date.now()}`,
-        chatId: `chat-group-${Date.now()}`,
-        senderId: user!.id,
-        senderName: `${user!.firstName} ${user!.lastName}`,
-        content: "Group created",
-        timestamp: "now",
-        type: "system",
-        status: "read",
-        isUser: true,
-      },
-      timestamp: "now",
+      lastMessage: newMessage,
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
       unreadCount: 0,
-      initials: name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .substring(0, 2)
-        .toUpperCase(),
-      messages: [],
-      isGroup: true,
+      initials,
+      messages: [newMessage], // Added required messages array
+      isGroup: true, // Added required isGroup field
       admins: [user!.id],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: now, // Added required createdAt
+      updatedAt: now, // Added required updatedAt
     };
 
     setChats((prev) => [newChat, ...prev]);
@@ -334,7 +347,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   const sortChats = (sort: "newest" | "oldest" | "unread") => {
-    const sorted = [...filteredChats];
+    let sorted = [...filteredChats];
 
     if (sort === "newest") {
       sorted.sort((a, b) => {

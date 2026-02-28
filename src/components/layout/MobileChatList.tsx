@@ -4,7 +4,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { useChat } from "@/context/ChatContext";
 import { channels } from "@/data/dummyData";
-import { User } from "@/types";
+import { User, Chat as ChatType } from "@/types";
 import Image from "next/image";
 import React, { useCallback, useEffect, useState } from "react";
 
@@ -26,16 +26,6 @@ interface LastMessage {
   }>;
 }
 
-interface ChatItem {
-  id: string;
-  name: string;
-  participants: Participant[];
-  unreadCount: number;
-  timestamp: string;
-  lastMessage: LastMessage;
-  isGroup?: boolean;
-}
-
 interface Channel {
   id: string;
   name: string;
@@ -48,12 +38,10 @@ export const MobileChatList: React.FC = () => {
   const { chats, setSelectedChat } = useChat();
   const [searchInput, setSearchInput] = useState("");
   const [activeTab, setActiveTab] = useState<"all" | "channels">("all");
-  const [filteredChats, setFilteredChats] = useState<ChatItem[]>(
-    chats as ChatItem[],
-  );
+  const [filteredChats, setFilteredChats] = useState<ChatType[]>(chats);
   const [filteredChannels, setFilteredChannels] = useState<Channel[]>(channels);
 
-  // FIXED: Generate unique ID helper - moved outside render to avoid impure function warnings
+  // FIXED: Generate unique ID helper
   const generateChannelIds = useCallback((channelName: string) => {
     const timestamp = Date.now();
     const uniqueSuffix = Math.random().toString(36).substring(2, 7);
@@ -68,11 +56,11 @@ export const MobileChatList: React.FC = () => {
   // Filter chats based on search input
   useEffect(() => {
     if (searchInput.trim() === "") {
-      setFilteredChats(chats as ChatItem[]);
+      setFilteredChats(chats);
       setFilteredChannels(channels);
     } else {
       // Filter chats
-      const chatResults = (chats as ChatItem[]).filter(
+      const chatResults = chats.filter(
         (chat) =>
           chat.name.toLowerCase().includes(searchInput.toLowerCase()) ||
           chat.lastMessage.content
@@ -130,87 +118,79 @@ export const MobileChatList: React.FC = () => {
     return colors[index];
   };
 
-  // FIXED: Channel selection with proper ID generation (no impure functions in render)
+  // FIXED: Channel selection with proper Chat object creation
   const handleChannelSelect = (
     channelName: string,
     channelColor: string,
     unreadCount: number,
   ) => {
-    // Generate IDs using the helper - this runs in event handler, not render
+    // Generate IDs using the helper
     const ids = generateChannelIds(channelName);
 
     // Try to find existing channel chat
-    let chat = (chats as ChatItem[]).find(
+    const existingChat = chats.find(
       (c) => c.name === channelName || c.name.includes(channelName),
     );
 
-    // If no channel chat exists, create a proper channel chat
-    if (!chat) {
-      // Create channel-specific messages with generated IDs
-      const channelMessages = [
-        {
-          id: ids.message1Id,
-          chatId: ids.chatId,
-          senderId: "system",
-          senderName: "System",
-          content: `Welcome to the ${channelName} channel!`,
-          timestamp: new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          type: "system" as const,
-          status: "read" as const,
-          isUser: false,
-        },
-        {
-          id: ids.message2Id,
-          chatId: ids.chatId,
-          senderId: "announcement",
-          senderName: "Announcements",
-          content: `This channel has ${unreadCount} new messages`,
-          timestamp: new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          type: "text" as const,
-          status: "read" as const,
-          isUser: false,
-        },
-      ];
-
-      chat = {
-        id: ids.chatId,
-        name: channelName,
-        participants: [], // Channels don't have individual participants
-        lastMessage: {
-          id: ids.lastMessageId,
-          chatId: ids.chatId,
-          senderId: "system",
-          senderName: "System",
-          content: `Welcome to ${channelName}`,
-          timestamp: "now",
-          type: "system",
-          status: "read",
-          isUser: false,
-        },
-        timestamp: "now",
-        unreadCount: unreadCount,
-        initials: channelName
-          .split(" ")
-          .map((n) => n[0])
-          .join("")
-          .substring(0, 2)
-          .toUpperCase(),
-        messages: channelMessages,
-        isGroup: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
+    if (existingChat) {
+      setSelectedChat(existingChat);
+      return;
     }
 
-    if (chat) {
-      setSelectedChat(chat);
-    }
+    // Create a new channel chat with all required fields
+    const now = new Date().toISOString();
+    const currentTime = new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    // Create channel-specific messages with generated IDs
+    const channelMessages = [
+      {
+        id: ids.message1Id,
+        chatId: ids.chatId,
+        senderId: "system",
+        senderName: "System",
+        content: `Welcome to the ${channelName} channel!`,
+        timestamp: currentTime,
+        type: "system" as const,
+        status: "read" as const,
+        isUser: false,
+      },
+      {
+        id: ids.message2Id,
+        chatId: ids.chatId,
+        senderId: "announcement",
+        senderName: "Announcements",
+        content: `This channel has ${unreadCount} new messages`,
+        timestamp: currentTime,
+        type: "text" as const,
+        status: "read" as const,
+        isUser: false,
+      },
+    ];
+
+    // Create complete Chat object with all required fields
+    const newChat: ChatType = {
+      id: ids.chatId,
+      name: channelName,
+      participants: [],
+      lastMessage: channelMessages[0],
+      timestamp: currentTime,
+      unreadCount: unreadCount,
+      initials: channelName
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .substring(0, 2)
+        .toUpperCase(),
+      messages: channelMessages,
+      isGroup: true,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    setSelectedChat(newChat);
   };
 
   return (
@@ -321,10 +301,9 @@ export const MobileChatList: React.FC = () => {
           // All Chats View
           filteredChats.length > 0 ? (
             <div className="divide-y divide-gray-100">
-              {filteredChats.map((chat: ChatItem) => {
-                // FIXED: Properly typed participant
+              {filteredChats.map((chat: ChatType) => {
                 const otherParticipant = chat.participants?.find(
-                  (participant: Participant) => participant.id !== user?.id,
+                  (participant: User) => participant.id !== user?.id,
                 );
                 const initials = getInitials(chat.name);
                 const avatarColor = getAvatarColor(chat.name);
@@ -339,7 +318,6 @@ export const MobileChatList: React.FC = () => {
                       className={`w-12 h-12 rounded-full ${avatarColor} flex items-center justify-center text-white font-semibold flex-shrink-0 overflow-hidden`}
                     >
                       {otherParticipant?.avatar ? (
-                        // FIXED: Replaced img with Next.js Image
                         <Image
                           src={otherParticipant.avatar}
                           alt={chat.name}
@@ -403,7 +381,7 @@ export const MobileChatList: React.FC = () => {
               </button>
             </div>
           )
-        ) : // Channels View - FIXED: Now opens correct channel chat
+        ) : // Channels View
         filteredChannels.length > 0 ? (
           <div className="divide-y divide-gray-100">
             {filteredChannels.map((channel: Channel) => (
@@ -418,7 +396,6 @@ export const MobileChatList: React.FC = () => {
                 }
                 className="flex items-center gap-3 px-4 py-3 transition-colors cursor-pointer active:bg-gray-50"
               >
-                {/* FIXED: Replaced inline style with className */}
                 <div
                   className={`w-12 h-12 rounded-full flex items-center justify-center font-semibold text-white ${getChannelColorClass(channel.color)}`}
                 >
