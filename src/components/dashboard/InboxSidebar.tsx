@@ -3,7 +3,7 @@
 
 import { useChat } from "@/context/ChatContext";
 import { channels, stats, teamMembers } from "@/data/dummyData";
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Chat } from "@/types";
 
 // Define types for better type safety
@@ -78,7 +78,21 @@ export const InboxSidebar: React.FC = () => {
     }
   };
 
+  // FIXED: Generate unique IDs helper - moved to useCallback
+  const generateChannelIds = useCallback((channelName: string) => {
+    const timestamp = Date.now();
+    const uniqueSuffix = Math.random().toString(36).substring(2, 7);
+    return {
+      chatId: `channel-${channelName}-${timestamp}-${uniqueSuffix}`,
+      message1Id: `channel-${channelName}-${timestamp}-1-${uniqueSuffix}`,
+      message2Id: `channel-${channelName}-${timestamp}-2-${uniqueSuffix}`,
+      timestamp,
+      uniqueSuffix,
+    };
+  }, []);
+
   // FIXED: Channel selection with proper Chat object creation
+  // All impure functions are now inside the event handler, not during render
   const handleChannelSelect = (channelName: string) => {
     setSelected(channelName);
 
@@ -92,10 +106,8 @@ export const InboxSidebar: React.FC = () => {
       return;
     }
 
-    // Create a new channel chat with all required fields
-    const timestamp = Date.now();
-    const uniqueSuffix = Math.random().toString(36).substring(2, 7);
-    const chatId = `channel-${channelName}-${timestamp}-${uniqueSuffix}`;
+    // Generate IDs using helper - this runs in event handler, not render
+    const ids = generateChannelIds(channelName);
     const now = new Date().toISOString();
     const currentTime = new Date().toLocaleTimeString([], {
       hour: "2-digit",
@@ -105,8 +117,8 @@ export const InboxSidebar: React.FC = () => {
     // Create channel messages
     const channelMessages = [
       {
-        id: `channel-${channelName}-${timestamp}-1-${uniqueSuffix}`,
-        chatId: chatId,
+        id: ids.message1Id,
+        chatId: ids.chatId,
         senderId: "system",
         senderName: "System",
         content: `Welcome to the ${channelName} channel!`,
@@ -116,8 +128,8 @@ export const InboxSidebar: React.FC = () => {
         isUser: false,
       },
       {
-        id: `channel-${channelName}-${timestamp}-2-${uniqueSuffix}`,
-        chatId: chatId,
+        id: ids.message2Id,
+        chatId: ids.chatId,
         senderId: "announcement",
         senderName: "Announcements",
         content: `This channel has ${
@@ -138,7 +150,7 @@ export const InboxSidebar: React.FC = () => {
 
     // Create complete Chat object with all required fields
     const newChat: Chat = {
-      id: chatId,
+      id: ids.chatId,
       name: channelName,
       participants: [],
       lastMessage: channelMessages[0],

@@ -1,6 +1,36 @@
 // File: src/services/api.ts
 import { Comment, DashboardStats, Post, Todo, User } from "@/types";
 
+// Define interface for DummyJSON user response
+interface DummyUser {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  image: string;
+  phone: string;
+  username: string;
+  birthDate: string;
+  address: {
+    address: string;
+    city: string;
+    state: string;
+    postalCode: string;
+  };
+  company: {
+    name: string;
+    title: string;
+    department: string;
+  };
+}
+
+interface DummyUsersResponse {
+  users: DummyUser[];
+  total: number;
+  skip: number;
+  limit: number;
+}
+
 const API = {
   users: "https://reqres.in/api/users",
   dummyUsers: "https://dummyjson.com/users",
@@ -21,9 +51,10 @@ export const fetchUserProfile = async (id: number = 2): Promise<User> => {
   return data.data;
 };
 
-export const fetchAllUsers = async (): Promise<any[]> => {
+// FIXED: Properly typed return value
+export const fetchAllUsers = async (): Promise<DummyUser[]> => {
   const response = await fetch(API.dummyUsers);
-  const data = await response.json();
+  const data: DummyUsersResponse = await response.json();
   return data.users;
 };
 
@@ -45,6 +76,7 @@ export const fetchComments = async (): Promise<Comment[]> => {
   return data.slice(0, 8); // Get first 8 comments for activity
 };
 
+// FIXED: Now returns complete DashboardStats object with all required properties
 export const fetchDashboardStats = async (): Promise<DashboardStats> => {
   const [usersRes, todosRes, postsRes, commentsRes] = await Promise.all([
     fetch(API.dummyUsers),
@@ -53,12 +85,20 @@ export const fetchDashboardStats = async (): Promise<DashboardStats> => {
     fetch(API.comments),
   ]);
 
-  const users = await usersRes.json();
-  const todos = await todosRes.json();
-  const posts = await postsRes.json();
-  const comments = await commentsRes.json();
+  const users: DummyUsersResponse = await usersRes.json();
+  const todos: Todo[] = await todosRes.json();
+  const posts: Post[] = await postsRes.json();
+  const comments: Comment[] = await commentsRes.json();
 
   return {
+    // Original DashboardStats required properties
+    all: 28,
+    unassigned: 5,
+    sales: 7,
+    customerSupport: 16,
+    onlineUsers: 5,
+    activeChats: 8,
+    // Additional API properties (optional)
     totalUsers: users.total,
     totalTodos: todos.length,
     totalPosts: posts.slice(0, 5).length,

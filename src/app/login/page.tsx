@@ -71,7 +71,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen p-4 bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="flex items-center justify-center min-h-screen p-4 bg-linear-to-br from-blue-50 to-indigo-100">
       <div className="w-full max-w-md overflow-hidden bg-white shadow-xl rounded-2xl">
         {/* Header */}
         <div className="p-6 text-center bg-blue-600">
@@ -89,7 +89,7 @@ export default function LoginPage() {
           {error && (
             <div className="flex items-center gap-2 p-3 text-sm text-red-600 rounded-lg bg-red-50">
               <svg
-                className="flex-shrink-0 w-5 h-5"
+                className="shrink-0 w-5 h-5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"

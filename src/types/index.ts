@@ -113,6 +113,7 @@ export interface Contact {
   };
 }
 
+// FIXED: DashboardStats now includes all properties from the API
 export interface DashboardStats {
   all: number;
   unassigned: number;
@@ -120,6 +121,11 @@ export interface DashboardStats {
   customerSupport: number;
   onlineUsers: number;
   activeChats: number;
+  // Additional properties for API stats
+  totalUsers?: number;
+  totalTodos?: number;
+  totalPosts?: number;
+  unreadMessages?: number;
 }
 
 export interface Activity {
@@ -129,6 +135,31 @@ export interface Activity {
   content: string;
   timestamp: string;
   metadata?: Record<string, unknown>;
+}
+
+// ADDED: Todo interface for API
+export interface Todo {
+  userId: number;
+  id: number;
+  title: string;
+  completed: boolean;
+}
+
+// ADDED: Post interface for API
+export interface Post {
+  userId: number;
+  id: number;
+  title: string;
+  body: string;
+}
+
+// ADDED: Comment interface for API
+export interface Comment {
+  postId: number;
+  id: number;
+  name: string;
+  email: string;
+  body: string;
 }
 
 // Navigation types

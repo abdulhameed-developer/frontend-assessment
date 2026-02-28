@@ -3,14 +3,26 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useChat } from "@/context/ChatContext";
-import { User } from "@/types";
+import { User, Chat as ChatType } from "@/types";
 import Image from "next/image";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 
 // Define interfaces for the component
-interface Participant extends Partial<User> {
+interface Participant {
   id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  avatar?: string;
   status?: "online" | "offline" | "away";
+  role?: string;
+  lastSeen?: string;
+  phone?: string;
+  bio?: string;
+  department?: string;
+  location?: string;
+  timezone?: string;
+  labels?: string[];
 }
 
 interface LastMessage {
@@ -32,6 +44,11 @@ interface ChatItem {
   unreadCount: number;
   timestamp: string;
   lastMessage: LastMessage;
+  initials?: string;
+  messages?: ChatType['messages'];
+  isGroup?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export const UsersColumn: React.FC = () => {
@@ -78,28 +95,30 @@ export const UsersColumn: React.FC = () => {
     searchChats(e.target.value);
   };
 
+  // Filter functions now work
   const handleFilter = (filter: "open" | "closed" | "all") => {
     setCurrentFilter(filter);
     filterChats(filter);
     setFilterOpen(false);
   };
 
+  // Sort functions now work
   const handleSort = (sort: "newest" | "oldest" | "unread") => {
     setCurrentSort(sort);
     sortChats(sort);
     setSortOpen(false);
   };
 
-  const getInitials = (name: string): string => {
+  const getInitials = useCallback((name: string): string => {
     return name
       .split(" ")
       .map((n: string) => n[0])
       .join("")
       .substring(0, 2)
       .toUpperCase();
-  };
+  }, []);
 
-  const getAvatarColor = (name: string): string => {
+  const getAvatarColor = useCallback((name: string): string => {
     const colors: string[] = [
       "bg-blue-500",
       "bg-purple-500",
@@ -112,7 +131,63 @@ export const UsersColumn: React.FC = () => {
     ];
     const index = name.length % colors.length;
     return colors[index];
-  };
+  }, []);
+
+  // Helper function to convert Participant to User
+  const participantToUser = useCallback((p: Participant): User => {
+    return {
+      id: p.id,
+      firstName: p.firstName,
+      lastName: p.lastName,
+      email: p.email,
+      avatar: p.avatar || "",
+      phone: p.phone || "",
+      bio: p.bio || "",
+      status: p.status || "offline",
+      lastSeen: p.lastSeen || new Date().toISOString(),
+      role: p.role || "",
+      department: p.department || "",
+      location: p.location || "",
+      timezone: p.timezone || "",
+      labels: p.labels || [],
+    };
+  }, []);
+
+  // Helper function to convert ChatItem to ChatType
+  const handleSelectChat = useCallback((chat: ChatItem) => {
+    const participantsAsUsers = chat.participants.map(participantToUser);
+    const sender = chat.participants.find(p => p.id === chat.lastMessage.senderId);
+    const senderName = sender 
+      ? `${sender.firstName} ${sender.lastName}`.trim()
+      : 'Unknown';
+
+    const chatToSelect: ChatType = {
+      id: chat.id,
+      name: chat.name,
+      participants: participantsAsUsers,
+      lastMessage: {
+        id: `${chat.lastMessage.senderId}-${chat.id}-${Date.now()}`,
+        chatId: chat.id,
+        senderId: chat.lastMessage.senderId,
+        senderName: senderName,
+        content: chat.lastMessage.content,
+        timestamp: chat.timestamp,
+        type: 'text',
+        status: 'read',
+        isUser: chat.lastMessage.senderId === user?.id,
+        ...(chat.lastMessage.attachments ? { attachments: chat.lastMessage.attachments } : {})
+      },
+      timestamp: chat.timestamp,
+      unreadCount: chat.unreadCount,
+      initials: chat.initials || getInitials(chat.name),
+      messages: chat.messages || [],
+      isGroup: chat.isGroup || false,
+      createdAt: chat.createdAt || new Date().toISOString(),
+      updatedAt: chat.updatedAt || new Date().toISOString(),
+    };
+    
+    setSelectedChat(chatToSelect);
+  }, [user?.id, getInitials, participantToUser, setSelectedChat]);
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-white">
@@ -249,9 +324,8 @@ export const UsersColumn: React.FC = () => {
         {filteredChats.map((chat: ChatItem) => {
           const isActive = selectedChat?.id === chat.id;
 
-          // FIXED: Properly typed participant parameter
-          const otherParticipant = chat.participants.find(
-            (participant: Participant): boolean => participant.id !== user?.id,
+          const otherParticipant = chat.participants?.find(
+            (participant: Participant) => participant.id !== user?.id,
           );
 
           const initials = getInitials(chat.name);
@@ -260,13 +334,13 @@ export const UsersColumn: React.FC = () => {
           return (
             <div
               key={chat.id}
-              onClick={() => setSelectedChat(chat)}
+              onClick={() => handleSelectChat(chat)}
               className={`flex items-center gap-2 p-3 cursor-pointer border-b border-gray-100 transition-colors ${
                 isActive ? "bg-blue-50" : "hover:bg-gray-50"
               }`}
             >
               <div
-                className={`w-8 h-8 rounded-full ${avatarColor} flex items-center justify-center text-white text-[11px] font-medium flex-shrink-0 overflow-hidden`}
+                className={`w-8 h-8 rounded-full ${avatarColor} flex items-center justify-center text-white text-[11px] font-medium shrink-0 overflow-hidden`}
               >
                 {otherParticipant?.avatar ? (
                   <Image
@@ -289,7 +363,7 @@ export const UsersColumn: React.FC = () => {
                   <h3 className="text-[11px] font-medium text-gray-900 truncate">
                     {chat.name}
                   </h3>
-                  <span className="text-[9px] text-gray-500 ml-1 flex-shrink-0">
+                  <span className="text-[9px] text-gray-500 ml-1 shrink-0">
                     {chat.timestamp}
                   </span>
                 </div>
@@ -298,7 +372,7 @@ export const UsersColumn: React.FC = () => {
                 </p>
               </div>
               {chat.unreadCount > 0 && (
-                <div className="flex items-center justify-center flex-shrink-0 w-4 h-4 ml-1 bg-blue-600 rounded-full">
+                <div className="flex items-center justify-center shrink-0 w-4 h-4 ml-1 bg-blue-600 rounded-full">
                   <span className="text-[8px] text-white">
                     {chat.unreadCount}
                   </span>

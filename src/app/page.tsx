@@ -57,15 +57,15 @@ export default function Home() {
 
       {/* DESKTOP LAYOUT */}
       <div className="hidden w-full pt-20 lg:block">
-        <div className="max-w-[1200px] mx-auto px-4">
+        <div className="max-w-300 mx-auto px-4">
           <div className="flex gap-4 h-[calc(100vh-120px)]">
             {/* FIRST COLUMN - Inbox Sidebar */}
-            <div className="w-[260px] flex-shrink-0 bg-white rounded-lg shadow-lg overflow-hidden">
+            <div className="w-65 shrink-0 bg-white rounded-lg shadow-lg overflow-hidden">
               <InboxSidebar />
             </div>
 
             {/* SECOND COLUMN - Users Column */}
-            <div className="w-[320px] flex-shrink-0 bg-white rounded-lg shadow-lg overflow-hidden">
+            <div className="w-[320px] shrink-0 bg-white rounded-lg shadow-lg overflow-hidden">
               <UsersColumn />
             </div>
 
@@ -75,7 +75,7 @@ export default function Home() {
             </div>
 
             {/* FOURTH COLUMN - Details Panel */}
-            <div className="w-[280px] flex-shrink-0 bg-white rounded-lg shadow-lg overflow-hidden">
+            <div className="w-70-shrink-0 bg-white rounded-lg shadow-lg overflow-hidden">
               <DetailsPanel />
             </div>
           </div>

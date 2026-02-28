@@ -4,6 +4,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { useChat } from "@/context/ChatContext";
 import { users } from "@/data/dummyData";
+import { User, Chat } from "@/types";
 import Image from "next/image";
 import React, { useCallback, useState } from "react";
 
@@ -39,7 +40,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
     bio: "",
   });
 
-  // FIXED: Generate unique ID helper - moved to useCallback
+  // Generate unique ID helper
   const generateId = useCallback((prefix: string): string => {
     return `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
   }, []);
@@ -57,92 +58,146 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
     setSearchQuery(e.target.value);
   };
 
-  // FIXED: Properly typed selectedUser parameter
-  const handleSelectUser = (selectedUser: SelectedUser) => {
+  // Helper function to create a complete User object from SelectedUser
+  const createUserFromSelected = useCallback((selectedUser: SelectedUser): User => {
+    return {
+      id: selectedUser.id,
+      firstName: selectedUser.firstName,
+      lastName: selectedUser.lastName,
+      email: selectedUser.email,
+      avatar: selectedUser.avatar || "",
+      phone: "",
+      bio: "",
+      status: "online",
+      lastSeen: "now",
+      role: "Member",
+      department: "",
+      location: "",
+      timezone: "",
+      labels: [],
+    };
+  }, []);
+
+  // Helper function to create a complete User object from form data
+  const createUserFromForm = useCallback((formData: typeof newUser, userId: string): User => {
+    return {
+      id: userId,
+      firstName: formData.name.split(" ")[0] || formData.name,
+      lastName: formData.name.split(" ")[1] || "",
+      email: formData.email,
+      phone: formData.phone || "",
+      bio: formData.bio || "New user",
+      avatar: "",
+      status: "online",
+      lastSeen: "now",
+      role: "Member",
+      department: "General",
+      location: "Not specified",
+      timezone: "UTC",
+      labels: ["New"],
+    };
+  }, []);
+
+  // Properly typed selectedUser parameter with null check for user
+  const handleSelectUser = useCallback((selectedUser: SelectedUser) => {
+    if (!user) return; // Guard against null user
+
     // Generate unique ID using helper
     const chatId = generateId("chat");
+    const now = new Date().toISOString();
+    const currentTime = new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
 
-    // Create a chat with selected user
-    const newChat = {
+    // Convert SelectedUser to full User object
+    const fullUser = createUserFromSelected(selectedUser);
+
+    // Create a complete Message object for lastMessage
+    const lastMessage = {
+      id: `msg-${chatId}-${Date.now()}`,
+      chatId: chatId,
+      senderId: user.id,
+      senderName: `${user.firstName} ${user.lastName}`,
+      content: "Start a conversation",
+      timestamp: currentTime,
+      type: "text" as const,
+      status: "sent" as const,
+      isUser: true,
+    };
+
+    // Create a complete Chat object
+    const newChat: Chat = {
       id: chatId,
       name: `${selectedUser.firstName} ${selectedUser.lastName}`,
-      participants: [user, selectedUser],
-      lastMessage: {
-        content: "Start a conversation",
-        timestamp: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        senderId: user?.id,
-      },
-      timestamp: "now",
+      participants: [user, fullUser],
+      lastMessage: lastMessage,
+      timestamp: currentTime,
       unreadCount: 0,
       initials: `${selectedUser.firstName[0]}${selectedUser.lastName[0]}`,
-      messages: [],
+      messages: [lastMessage],
       isGroup: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: now,
+      updatedAt: now,
     };
 
     setSelectedChat(newChat);
     setShowNewChatModal(false);
     setSearchQuery("");
     onViewChange("chat");
-  };
+  }, [user, generateId, createUserFromSelected, setSelectedChat, onViewChange]);
 
-  const handleAddNewUser = () => {
-    if (newUser.name && newUser.email) {
-      // Generate unique IDs using helper
-      const userId = generateId("user");
-      const chatId = generateId("chat");
+  // Add null check for user
+  const handleAddNewUser = useCallback(() => {
+    if (!user) return; // Guard against null user
+    if (!newUser.name || !newUser.email) return;
 
-      // Create new user
-      const newUserObj = {
-        id: userId,
-        firstName: newUser.name.split(" ")[0] || newUser.name,
-        lastName: newUser.name.split(" ")[1] || "",
-        email: newUser.email,
-        phone: newUser.phone || "",
-        bio: newUser.bio || "New user",
-        avatar: "",
-        status: "online" as const,
-        lastSeen: "now",
-        role: "Member",
-        department: "General",
-        location: "Not specified",
-        timezone: "UTC",
-        labels: ["New"],
-      };
+    // Generate unique IDs using helper
+    const userId = generateId("user");
+    const chatId = generateId("chat");
+    const now = new Date().toISOString();
+    const currentTime = new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
 
-      // Create chat with new user
-      const newChat = {
-        id: chatId,
-        name: newUserObj.firstName + " " + newUserObj.lastName,
-        participants: [user, newUserObj],
-        lastMessage: {
-          content: "New contact added",
-          timestamp: new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          senderId: user?.id,
-        },
-        timestamp: "now",
-        unreadCount: 0,
-        initials: `${newUserObj.firstName[0]}${newUserObj.lastName[0]}`,
-        messages: [],
-        isGroup: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
+    // Create new user as full User object
+    const newUserObj = createUserFromForm(newUser, userId);
 
-      setSelectedChat(newChat);
-      setShowAddUserForm(false);
-      setShowNewChatModal(false);
-      setNewUser({ name: "", email: "", phone: "", bio: "" });
-      onViewChange("chat");
-    }
-  };
+    // Create a complete Message object for lastMessage
+    const lastMessage = {
+      id: `msg-${chatId}-${Date.now()}`,
+      chatId: chatId,
+      senderId: user.id,
+      senderName: `${user.firstName} ${user.lastName}`,
+      content: "New contact added",
+      timestamp: currentTime,
+      type: "text" as const,
+      status: "sent" as const,
+      isUser: true,
+    };
+
+    // Create a complete Chat object
+    const newChat: Chat = {
+      id: chatId,
+      name: newUserObj.firstName + " " + newUserObj.lastName,
+      participants: [user, newUserObj],
+      lastMessage: lastMessage,
+      timestamp: currentTime,
+      unreadCount: 0,
+      initials: `${newUserObj.firstName[0]}${newUserObj.lastName[0]}`,
+      messages: [lastMessage],
+      isGroup: false,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    setSelectedChat(newChat);
+    setShowAddUserForm(false);
+    setShowNewChatModal(false);
+    setNewUser({ name: "", email: "", phone: "", bio: "" });
+    onViewChange("chat");
+  }, [user, newUser, generateId, createUserFromForm, setSelectedChat, onViewChange]);
 
   return (
     <>
@@ -292,7 +347,6 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
                       >
                         <div className="flex items-center justify-center w-10 h-10 overflow-hidden text-sm font-semibold text-white bg-blue-500 rounded-full">
                           {u.avatar ? (
-                            // FIXED: Replaced img with Next.js Image
                             <Image
                               src={u.avatar}
                               alt={u.firstName}

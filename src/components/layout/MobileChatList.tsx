@@ -3,29 +3,12 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useChat } from "@/context/ChatContext";
-import { channels } from "@/data/dummyData";
-import { User, Chat as ChatType } from "@/types";
+import { channels as staticChannels } from "@/data/dummyData";
+import { Chat as ChatType } from "@/types";
 import Image from "next/image";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 
 // Define interfaces for proper typing
-interface Participant extends Partial<User> {
-  id: string;
-  status?: "online" | "offline" | "away";
-}
-
-interface LastMessage {
-  senderId: string;
-  content: string;
-  timestamp?: string;
-  attachments?: Array<{
-    name: string;
-    url: string;
-    size: number;
-    type: string;
-  }>;
-}
-
 interface Channel {
   id: string;
   name: string;
@@ -38,8 +21,32 @@ export const MobileChatList: React.FC = () => {
   const { chats, setSelectedChat } = useChat();
   const [searchInput, setSearchInput] = useState("");
   const [activeTab, setActiveTab] = useState<"all" | "channels">("all");
-  const [filteredChats, setFilteredChats] = useState<ChatType[]>(chats);
-  const [filteredChannels, setFilteredChannels] = useState<Channel[]>(channels);
+
+  // FIXED: Use useMemo for filtered chats
+  const filteredChats = useMemo(() => {
+    if (searchInput.trim() === "") {
+      return chats;
+    }
+    // Filter chats
+    return chats.filter(
+      (chat) =>
+        chat.name.toLowerCase().includes(searchInput.toLowerCase()) ||
+        chat.lastMessage.content
+          .toLowerCase()
+          .includes(searchInput.toLowerCase()),
+    );
+  }, [chats, searchInput]);
+
+  // FIXED: Use useMemo for filtered channels - channels is static, so no dependency needed
+  const filteredChannels = useMemo(() => {
+    if (searchInput.trim() === "") {
+      return staticChannels;
+    }
+    // Filter channels
+    return staticChannels.filter((channel) =>
+      channel.name.toLowerCase().includes(searchInput.toLowerCase()),
+    );
+  }, [searchInput]); // ✅ Only searchInput is needed, channels is static
 
   // FIXED: Generate unique ID helper
   const generateChannelIds = useCallback((channelName: string) => {
@@ -52,30 +59,6 @@ export const MobileChatList: React.FC = () => {
       lastMessageId: `last-${channelName}-${timestamp}-${uniqueSuffix}`,
     };
   }, []);
-
-  // Filter chats based on search input
-  useEffect(() => {
-    if (searchInput.trim() === "") {
-      setFilteredChats(chats);
-      setFilteredChannels(channels);
-    } else {
-      // Filter chats
-      const chatResults = chats.filter(
-        (chat) =>
-          chat.name.toLowerCase().includes(searchInput.toLowerCase()) ||
-          chat.lastMessage.content
-            .toLowerCase()
-            .includes(searchInput.toLowerCase()),
-      );
-      setFilteredChats(chatResults);
-
-      // Filter channels
-      const channelResults = channels.filter((channel) =>
-        channel.name.toLowerCase().includes(searchInput.toLowerCase()),
-      );
-      setFilteredChannels(channelResults);
-    }
-  }, [searchInput, chats]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInput(e.target.value);
@@ -119,7 +102,7 @@ export const MobileChatList: React.FC = () => {
   };
 
   // FIXED: Channel selection with proper Chat object creation
-  const handleChannelSelect = (
+  const handleChannelSelect = useCallback((
     channelName: string,
     channelColor: string,
     unreadCount: number,
@@ -191,7 +174,7 @@ export const MobileChatList: React.FC = () => {
     };
 
     setSelectedChat(newChat);
-  };
+  }, [chats, generateChannelIds, setSelectedChat]);
 
   return (
     <div className="w-full h-full bg-white">
@@ -303,7 +286,7 @@ export const MobileChatList: React.FC = () => {
             <div className="divide-y divide-gray-100">
               {filteredChats.map((chat: ChatType) => {
                 const otherParticipant = chat.participants?.find(
-                  (participant: User) => participant.id !== user?.id,
+                  (participant) => participant.id !== user?.id,
                 );
                 const initials = getInitials(chat.name);
                 const avatarColor = getAvatarColor(chat.name);
@@ -315,7 +298,7 @@ export const MobileChatList: React.FC = () => {
                     className="flex items-center gap-3 px-4 py-3 transition-colors cursor-pointer active:bg-gray-50"
                   >
                     <div
-                      className={`w-12 h-12 rounded-full ${avatarColor} flex items-center justify-center text-white font-semibold flex-shrink-0 overflow-hidden`}
+                      className={`w-12 h-12 rounded-full ${avatarColor} flex items-center justify-center text-white font-semibold shrink-0 overflow-hidden`}
                     >
                       {otherParticipant?.avatar ? (
                         <Image
@@ -334,7 +317,7 @@ export const MobileChatList: React.FC = () => {
                         <h3 className="font-medium text-gray-900 truncate">
                           {chat.name}
                         </h3>
-                        <span className="flex-shrink-0 ml-2 text-xs text-gray-500">
+                        <span className="shrink-0 ml-2 text-xs text-gray-500">
                           {chat.timestamp}
                         </span>
                       </div>
@@ -343,7 +326,7 @@ export const MobileChatList: React.FC = () => {
                       </p>
                     </div>
                     {chat.unreadCount > 0 && (
-                      <div className="flex items-center justify-center flex-shrink-0 w-5 h-5 ml-2 bg-blue-600 rounded-full">
+                      <div className="flex items-center justify-center shrink-0 w-5 h-5 ml-2 bg-blue-600 rounded-full">
                         <span className="text-xs text-white">
                           {chat.unreadCount}
                         </span>
@@ -406,7 +389,7 @@ export const MobileChatList: React.FC = () => {
                     <h3 className="font-medium text-gray-900 truncate">
                       {channel.name}
                     </h3>
-                    <span className="flex-shrink-0 ml-2 text-xs text-gray-500">
+                    <span className="shrink-0 ml-2 text-xs text-gray-500">
                       {channel.unread} new
                     </span>
                   </div>

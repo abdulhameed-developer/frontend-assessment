@@ -3,14 +3,21 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useChat } from "@/context/ChatContext";
-import { User } from "@/types";
+import { User, Chat as ChatType } from "@/types";
 import Image from "next/image";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 
-// Define interfaces for the component
-interface Participant extends Partial<User> {
+// FIXED: Participant should not extend User, it should be compatible with User
+interface Participant {
   id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  avatar?: string;
   status?: "online" | "offline" | "away";
+  // Add any other fields we need from User
+  role?: string;
+  lastSeen?: string;
 }
 
 interface LastMessage {
@@ -32,9 +39,8 @@ interface LocalChat {
   unreadCount: number;
   timestamp: string;
   lastMessage: LastMessage;
-  // Optional fields that might be missing
   initials?: string;
-  messages?: any[];
+  messages?: ChatType['messages'];
   isGroup?: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -60,7 +66,7 @@ export const ChatList: React.FC = () => {
     searchChats(e.target.value);
   };
 
-  const getAvatarColor = (name: string): string => {
+  const getAvatarColor = useCallback((name: string): string => {
     const colors: string[] = [
       "bg-red-500",
       "bg-blue-500",
@@ -73,16 +79,16 @@ export const ChatList: React.FC = () => {
     ];
     const index = name.length % colors.length;
     return colors[index];
-  };
+  }, []);
 
-  const getInitials = (name: string): string => {
+  const getInitials = useCallback((name: string): string => {
     return name
       .split(" ")
       .map((n: string) => n[0])
       .join("")
       .substring(0, 2)
       .toUpperCase();
-  };
+  }, []);
 
   const unreadCount = useMemo((): number => {
     return filteredChats.reduce(
@@ -90,6 +96,71 @@ export const ChatList: React.FC = () => {
       0,
     );
   }, [filteredChats]);
+
+  // Helper function to safely set selected chat
+  const handleSelectChat = useCallback((chat: LocalChat) => {
+    // Find the sender name from participants
+    const senderParticipant = chat.participants.find(
+      (p) => p.id === chat.lastMessage.senderId
+    );
+    
+    const senderName = senderParticipant 
+      ? `${senderParticipant.firstName} ${senderParticipant.lastName}`.trim()
+      : 'Unknown';
+
+    // Create a valid lastMessage object with all required fields
+    const lastMessage: ChatType['lastMessage'] = {
+      id: chat.lastMessage.senderId + chat.id, // Use combination instead of Date.now()
+      chatId: chat.id,
+      senderId: chat.lastMessage.senderId,
+      senderName: senderName,
+      content: chat.lastMessage.content,
+      timestamp: chat.timestamp,
+      type: 'text',
+      status: 'read',
+      isUser: chat.lastMessage.senderId === user?.id,
+    };
+
+    // If there are attachments, add them
+    if (chat.lastMessage.attachments && chat.lastMessage.attachments.length > 0) {
+      lastMessage.attachments = chat.lastMessage.attachments;
+    }
+
+    // Convert participants to User type by ensuring all required fields
+    const participantsAsUsers: User[] = chat.participants.map(p => ({
+      id: p.id,
+      firstName: p.firstName || '',
+      lastName: p.lastName || '',
+      email: p.email || '',
+      avatar: p.avatar || '',
+      phone: '',
+      bio: '',
+      status: p.status || 'offline',
+      lastSeen: p.lastSeen || new Date().toISOString(),
+      role: p.role || '',
+      department: '',
+      location: '',
+      timezone: '',
+      labels: [],
+    }));
+
+    // Create a valid Chat object with all required fields
+    const chatToSelect: ChatType = {
+      id: chat.id,
+      name: chat.name,
+      participants: participantsAsUsers,
+      lastMessage: lastMessage,
+      timestamp: chat.timestamp,
+      unreadCount: chat.unreadCount,
+      initials: chat.initials || getInitials(chat.name),
+      messages: chat.messages || [],
+      isGroup: chat.isGroup || false,
+      createdAt: chat.createdAt || new Date().toISOString(),
+      updatedAt: chat.updatedAt || new Date().toISOString(),
+    };
+    
+    setSelectedChat(chatToSelect);
+  }, [user?.id, getInitials, setSelectedChat]);
 
   return (
     <div className="w-[320px] h-full bg-white border-r border-gray-200 flex flex-col overflow-hidden">
@@ -244,7 +315,7 @@ export const ChatList: React.FC = () => {
             return (
               <div
                 key={chat.id}
-                onClick={() => setSelectedChat(chat as any)} // Cast to any to bypass type check
+                onClick={() => handleSelectChat(chat)}
                 className={`flex gap-3 p-4 cursor-pointer border-b border-gray-100 transition-colors ${
                   isSelected ? "bg-blue-50" : "hover:bg-gray-50"
                 }`}
@@ -269,7 +340,7 @@ export const ChatList: React.FC = () => {
                     <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
                   )}
                   {chat.unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 min-w-[20px] h-5 bg-red-500 text-white text-xs font-medium rounded-full flex items-center justify-center px-1">
+                    <span className="absolute -top-1 -right-1 min-w-5 h-5 bg-red-500 text-white text-xs font-medium rounded-full flex items-center justify-center px-1">
                       {chat.unreadCount > 9 ? "9+" : chat.unreadCount}
                     </span>
                   )}

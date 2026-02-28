@@ -9,7 +9,7 @@ export const LoadingSkeleton: React.FC = () => {
     <div className="min-h-screen bg-white">
       {/* Header Skeleton */}
       <header className="w-full bg-white border-b border-gray-200">
-        <div className="max-w-[1200px] mx-auto px-4">
+        <div className="max-w-300 mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-8">
               <SkeletonBlock width="w-24" height="h-8" />
@@ -44,10 +44,10 @@ export const LoadingSkeleton: React.FC = () => {
       </header>
 
       {/* Main Content Skeleton */}
-      <div className="max-w-[1200px] mx-auto px-4 pt-20">
+      <div className="max-w-300 mx-auto px-4 pt-20">
         <div className="flex gap-4">
           {/* Left Sidebar Skeleton */}
-          <div className="hidden lg:block w-[260px] space-y-6">
+          <div className="hidden lg:block w-65 space-y-6">
             <div>
               <SkeletonBlock width="w-full" height="h-6" className="mb-4" />
               <div className="space-y-2">
@@ -134,7 +134,7 @@ export const LoadingSkeleton: React.FC = () => {
           </div>
 
           {/* Details Panel Skeleton */}
-          <div className="hidden lg:block w-[280px]">
+          <div className="hidden lg:block w-70">
             <SkeletonBlock
               width="w-full"
               height="h-32"

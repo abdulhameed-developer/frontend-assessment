@@ -7,9 +7,10 @@ import React, {
   useState,
   useEffect,
   ReactNode,
+  useCallback,
 } from "react";
 import { User } from "@/types";
-import { currentUser, users } from "@/data/dummyData";
+import { users } from "@/data/dummyData";
 
 interface AuthContextType {
   user: User | null;
@@ -36,24 +37,40 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const [allUsers, setAllUsers] = useState<User[]>(users);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
+  // Check for saved session with proper initialization pattern
   useEffect(() => {
-    // Check for saved session
-    const savedUser = localStorage.getItem("currentUser");
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+    // Only run once when component mounts
+    if (!isInitialized) {
+      try {
+        const savedUser = localStorage.getItem("currentUser");
+        if (savedUser) {
+          const parsedUser = JSON.parse(savedUser);
+          setUser(parsedUser);
+        }
+      } catch (error) {
+        console.error("Failed to parse saved user:", error);
+      } finally {
+        setIsLoading(false);
+        setIsInitialized(true);
+      }
     }
-    setIsLoading(false);
-  }, []);
+  }, [isInitialized]);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  // Login function - password is intentionally unused in demo
+  const login = useCallback(async (
+    email: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    password: string
+  ): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
 
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    // Find user by email
+    // Find user by email (password is ignored in demo)
     const foundUser = allUsers.find(
       (u) => u.email.toLowerCase() === email.toLowerCase(),
     );
@@ -68,11 +85,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     setError("Invalid email or password");
     setIsLoading(false);
     return false;
-  };
+  }, [allUsers]);
 
-  const signup = async (
+  // Signup function - password is intentionally unused in demo
+  const signup = useCallback(async (
     userData: Partial<User>,
-    password: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    password: string
   ): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
@@ -112,14 +131,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
     setIsLoading(false);
     return true;
-  };
+  }, [allUsers]);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setUser(null);
     localStorage.removeItem("currentUser");
-  };
+  }, []);
 
-  const updateUser = (updatedUser: Partial<User>) => {
+  const updateUser = useCallback((updatedUser: Partial<User>) => {
     if (user) {
       const newUser = { ...user, ...updatedUser };
       setUser(newUser);
@@ -128,19 +147,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       // Update in allUsers list
       setAllUsers((prev) => prev.map((u) => (u.id === user.id ? newUser : u)));
     }
-  };
+  }, [user]);
 
-  const changePassword = async (
+  // Change password function - parameters are intentionally unused in demo
+  const changePassword = useCallback(async (
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     oldPassword: string,
-    newPassword: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    newPassword: string
   ): Promise<boolean> => {
     setIsLoading(true);
     await new Promise((resolve) => setTimeout(resolve, 1000));
     setIsLoading(false);
     return true;
-  };
+  }, []);
 
-  const uploadAvatar = async (file: File): Promise<string> => {
+  const uploadAvatar = useCallback(async (file: File): Promise<string> => {
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -150,7 +172,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       };
       reader.readAsDataURL(file);
     });
-  };
+  }, [updateUser]);
 
   return (
     <AuthContext.Provider

@@ -121,12 +121,12 @@ export const DetailsPanel: React.FC = () => {
         ))}
       </div>
 
-      <div className="flex-1 p-3 overflow-y-auto scrollbar-thin">
+      <div className="w-62.5 p-3 overflow-y-auto scrollbar-thin">
         {activeTab === "details" && (
           <>
             {/* Profile Header */}
             <div className="flex items-center gap-2 mb-3">
-              <div className="flex items-center justify-center flex-shrink-0 w-8 h-8 text-xs font-semibold text-white bg-blue-500 rounded-full">
+              <div className="flex items-center justify-center shrink-0 w-8 h-8 text-xs font-semibold text-white bg-blue-500 rounded-full">
                 {contact.firstName[0]}
                 {contact.lastName[0]}
               </div>

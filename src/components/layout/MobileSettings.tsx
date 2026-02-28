@@ -766,7 +766,7 @@ export const MobileSettings: React.FC<MobileSettingsProps> = ({ onClose }) => {
               <>
                 {/* Profile Header */}
                 <div className="flex items-center gap-4 p-4 mb-6 bg-gray-50 rounded-xl">
-                  <div className="flex-shrink-0 w-16 h-16 overflow-hidden bg-pink-500 rounded-full">
+                  <div className="shrink-0 w-16 h-16 overflow-hidden bg-pink-500 rounded-full">
                     {user.avatar ? (
                       <Image
                         src={user.avatar}

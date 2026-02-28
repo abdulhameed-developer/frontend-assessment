@@ -187,7 +187,7 @@ export const Header: React.FC = () => {
     },
   ];
 
-  // FIXED: Added proper typing for prev parameter in setEditedUser
+  // Handle input changes
   const handleFirstNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEditedUser((prev: User | null) =>
       prev ? { ...prev, firstName: e.target.value } : prev,
@@ -221,7 +221,7 @@ export const Header: React.FC = () => {
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 w-full">
-        <div className="w-full lg:w-[1185px] lg:mx-auto px-4 lg:px-0 lg:py-3">
+        <div className="w-full lg:w-296.25 lg:mx-auto px-4 lg:px-0 lg:py-3">
           {/* Main Header Container */}
           <div className="w-full lg:w-[1188.77px] h-[39.3px] bg-white rounded-[11.23px] py-[7.02px] px-[11.23px] flex items-center justify-between gap-[5.61px] mx-auto shadow-sm">
             {/* Left Section with Logo and Navigation */}
@@ -299,13 +299,13 @@ export const Header: React.FC = () => {
                   onClick={() => setSettingsOpen(!settingsOpen)}
                   className="relative w-[29.47px] h-[25.26px] group"
                   aria-label="Settings"
-                  // FIXED: Convert boolean to string "true"/"false"
+                  // FIXED: Explicit string values for aria-expanded
                   aria-expanded={settingsOpen ? "true" : "false"}
                 >
                   {/* Outer Border */}
                   <div className="absolute inset-0 border border-gray-300 rounded-[5.61px] group-hover:border-blue-600 transition-colors" />
                   {/* Inner Border */}
-                  <div className="absolute inset-[3px] border border-gray-400 rounded-[4px] flex items-center justify-center group-hover:border-blue-600 transition-colors">
+                  <div className="absolute inset-0.75 border border-gray-400 rounded-sm flex items-center justify-center group-hover:border-blue-600 transition-colors">
                     <svg
                       width="14"
                       height="14"
@@ -383,7 +383,7 @@ export const Header: React.FC = () => {
                   onClick={() => setProfileOpen(!profileOpen)}
                   className="flex items-center gap-[5.61px] focus:outline-none profile-button px-[8.42px] py-0 h-[25.26px] hover:bg-gray-50 rounded-lg transition-colors"
                   aria-label="User profile"
-                  // FIXED: Convert boolean to string "true"/"false"
+                  // FIXED: Explicit string values for aria-expanded
                   aria-expanded={profileOpen ? "true" : "false"}
                 >
                   {/* Avatar Container */}

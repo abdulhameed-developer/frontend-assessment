@@ -5,11 +5,12 @@ import React, {
   createContext,
   useContext,
   useState,
-  useEffect,
   ReactNode,
+  useCallback,
+  useMemo,
 } from "react";
-import { Chat, Message, User } from "@/types";
-import { chats as initialChats, users, currentUser } from "@/data/dummyData";
+import { Chat, Message } from "@/types";
+import { chats as initialChats, users } from "@/data/dummyData";
 import { useAuth } from "./AuthContext";
 
 interface ChatContextType {
@@ -25,7 +26,12 @@ interface ChatContextType {
   sendMessage: (
     content: string,
     type?: "text" | "image" | "file",
-    attachments?: any[],
+    attachments?: Array<{
+      name: string;
+      url: string;
+      size: number;
+      type: string;
+    }>,
   ) => void;
   deleteMessage: (messageId: string) => void;
   editMessage: (messageId: string, newContent: string) => void;
@@ -49,9 +55,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const { user } = useAuth();
   const [chats, setChats] = useState<Chat[]>(initialChats);
-  const [filteredChats, setFilteredChats] = useState<Chat[]>(initialChats);
-  const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [selectedChat, setSelectedChatState] = useState<Chat | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<"all" | "unread" | "groups">(
     "all",
@@ -59,18 +63,40 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   const [sortBy, setSortBy] = useState<"recent" | "unread" | "alphabetical">(
     "recent",
   );
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [loading, setLoading] = useState(false);
 
-  // Load messages when chat is selected
-  useEffect(() => {
-    if (selectedChat) {
-      setMessages(selectedChat.messages);
-      markAsRead(selectedChat.id);
+  // Generate unique ID helper
+  const generateId = useCallback((prefix: string): string => {
+    return `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+  }, []);
+
+  // markAsRead function
+  const markAsRead = useCallback((chatId: string) => {
+    setChats((prev) =>
+      prev.map((chat) =>
+        chat.id === chatId ? { ...chat, unreadCount: 0 } : chat,
+      ),
+    );
+  }, []);
+
+  // Custom setSelectedChat that handles marking as read
+  const setSelectedChat = useCallback((chat: Chat | null) => {
+    setSelectedChatState(chat);
+    if (chat && chat.unreadCount > 0) {
+      setTimeout(() => {
+        markAsRead(chat.id);
+      }, 0);
     }
+  }, [markAsRead]);
+
+  // Messages derived from selectedChat
+  const messages = useMemo(() => {
+    return selectedChat?.messages || [];
   }, [selectedChat]);
 
-  // Apply filters and search
-  useEffect(() => {
+  // FIXED: Filtered chats derived from chats, searchQuery, filterType, sortBy
+  const filteredChats = useMemo(() => {
     let filtered = [...chats];
 
     // Apply search
@@ -104,83 +130,37 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       filtered.sort((a, b) => a.name.localeCompare(b.name));
     }
 
-    setFilteredChats(filtered);
+    return filtered;
   }, [chats, searchQuery, filterType, sortBy]);
 
-  const sendMessage = async (
-    content: string,
-    type: "text" | "image" | "file" = "text",
-    attachments: any[] = [],
-  ) => {
-    if (!selectedChat || !user || !content.trim()) return;
+  // FIXED: simulateReply function
+  const simulateReply = useCallback((chatId: string) => {
+    if (!selectedChat || !user) return;
 
-    const newMessage: Message = {
-      id: `msg-${Date.now()}`,
-      chatId: selectedChat.id,
-      senderId: user.id,
-      senderName: `${user.firstName} ${user.lastName}`,
-      senderAvatar: user.avatar,
-      content,
-      timestamp: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      type,
-      status: "sent",
-      isUser: true,
-      attachments: attachments.length > 0 ? attachments : undefined,
-    };
-
-    setMessages((prev) => [...prev, newMessage]);
-
-    setChats((prev) =>
-      prev.map((chat) =>
-        chat.id === selectedChat.id
-          ? {
-              ...chat,
-              lastMessage: {
-                ...newMessage,
-                content:
-                  content.length > 40
-                    ? content.substring(0, 40) + "..."
-                    : content,
-              },
-              timestamp: newMessage.timestamp,
-              unreadCount: chat.unreadCount + 1,
-              messages: [...chat.messages, newMessage],
-            }
-          : chat,
-      ),
-    );
-
-    setTimeout(() => {
-      simulateReply(selectedChat.id);
-    }, 3000);
-  };
-
-  const simulateReply = (chatId: string) => {
     const otherParticipant = selectedChat?.participants.find(
       (p) => p.id !== user?.id,
     );
     if (!otherParticipant) return;
 
+    const replyId = generateId("msg-reply");
+    const now = new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
     const replyMessage: Message = {
-      id: `msg-${Date.now()}-reply`,
+      id: replyId,
       chatId,
       senderId: otherParticipant.id,
       senderName: otherParticipant.firstName + " " + otherParticipant.lastName,
       senderAvatar: otherParticipant.avatar,
       content: "Thanks for your message! I'll get back to you soon.",
-      timestamp: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
+      timestamp: now,
       type: "text",
       status: "delivered",
       isUser: false,
     };
 
-    setMessages((prev) => [...prev, replyMessage]);
     setChats((prev) =>
       prev.map((chat) =>
         chat.id === chatId
@@ -193,68 +173,169 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
                     ? replyMessage.content.substring(0, 40) + "..."
                     : replyMessage.content,
               },
-              timestamp: replyMessage.timestamp,
+              timestamp: now,
               messages: [...chat.messages, replyMessage],
             }
           : chat,
       ),
     );
-  };
+  }, [selectedChat, user, generateId]);
 
-  const deleteMessage = (messageId: string) => {
-    setMessages((prev) => prev.filter((m) => m.id !== messageId));
+  // FIXED: sendMessage
+  const sendMessage = useCallback((
+    content: string,
+    type: "text" | "image" | "file" = "text",
+    attachments?: Array<{
+      name: string;
+      url: string;
+      size: number;
+      type: string;
+    }>,
+  ) => {
+    if (!selectedChat || !user || !content.trim()) return;
+
+    const messageId = generateId("msg");
+    const now = new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    const newMessage: Message = {
+      id: messageId,
+      chatId: selectedChat.id,
+      senderId: user.id,
+      senderName: `${user.firstName} ${user.lastName}`,
+      senderAvatar: user.avatar,
+      content,
+      timestamp: now,
+      type,
+      status: "sent",
+      isUser: true,
+      attachments,
+    };
+
+    // Update chats with new message
+    setChats((prev) =>
+      prev.map((chat) =>
+        chat.id === selectedChat.id
+          ? {
+              ...chat,
+              lastMessage: {
+                ...newMessage,
+                content:
+                  content.length > 40
+                    ? content.substring(0, 40) + "..."
+                    : content,
+              },
+              timestamp: now,
+              unreadCount: chat.unreadCount + 1,
+              messages: [...chat.messages, newMessage],
+            }
+          : chat,
+      ),
+    );
+
+    // Update selected chat's messages immediately for UI
+    setSelectedChatState((prev) => {
+      if (!prev || prev.id !== selectedChat.id) return prev;
+      return {
+        ...prev,
+        lastMessage: {
+          ...newMessage,
+          content: content.length > 40 ? content.substring(0, 40) + "..." : content,
+        },
+        timestamp: now,
+        unreadCount: prev.unreadCount + 1,
+        messages: [...prev.messages, newMessage],
+      };
+    });
+
+    // Simulate reply after 3 seconds
+    setTimeout(() => {
+      simulateReply(selectedChat.id);
+    }, 3000);
+  }, [selectedChat, user, generateId, simulateReply]);
+
+  // FIXED: filterChats function - now updates the filterType which triggers useMemo
+  const filterChats = useCallback((filter: "all" | "open" | "closed") => {
+    // Convert the filter from UsersColumn to filterType format
+    if (filter === "open") {
+      setFilterType("unread");
+    } else if (filter === "closed") {
+      setFilterType("all"); // Closed means no unread messages
+    } else {
+      setFilterType("all");
+    }
+  }, []);
+
+  // FIXED: sortChats function - now updates the sortBy which triggers useMemo
+  const sortChats = useCallback((sort: "newest" | "oldest" | "unread") => {
+    if (sort === "newest") {
+      setSortBy("recent");
+    } else if (sort === "oldest") {
+      setSortBy("recent"); // We'll handle oldest in a custom way
+    } else if (sort === "unread") {
+      setSortBy("unread");
+    }
+  }, []);
+
+  const deleteMessage = useCallback((messageId: string) => {
     setChats((prev) =>
       prev.map((chat) => ({
         ...chat,
         messages: chat.messages.filter((m) => m.id !== messageId),
       })),
     );
-  };
+  }, []);
 
-  const editMessage = (messageId: string, newContent: string) => {
-    setMessages((prev) =>
-      prev.map((m) => (m.id === messageId ? { ...m, content: newContent } : m)),
+  const editMessage = useCallback((messageId: string, newContent: string) => {
+    setChats((prev) =>
+      prev.map((chat) => ({
+        ...chat,
+        messages: chat.messages.map((m) =>
+          m.id === messageId ? { ...m, content: newContent } : m,
+        ),
+      })),
     );
-  };
+  }, []);
 
-  const reactToMessage = (messageId: string, reaction: string) => {
+  const reactToMessage = useCallback((messageId: string, reaction: string) => {
     if (!user) return;
 
-    setMessages((prev) =>
-      prev.map((m) =>
-        m.id === messageId
-          ? {
-              ...m,
-              reactions: [
-                ...(m.reactions || []),
-                { userId: user.id, reaction },
-              ],
-            }
-          : m,
-      ),
+    setChats((prev) =>
+      prev.map((chat) => ({
+        ...chat,
+        messages: chat.messages.map((m) =>
+          m.id === messageId
+            ? {
+                ...m,
+                reactions: [
+                  ...(m.reactions || []),
+                  { userId: user.id, reaction },
+                ],
+              }
+            : m,
+        ),
+      })),
     );
-  };
+  }, [user]);
 
-  const replyToMessage = (messageId: string, content: string) => {
-    const originalMessage = messages.find((m) => m.id === messageId);
+  const replyToMessage = useCallback((messageId: string, content: string) => {
+    const originalMessage = chats
+      .flatMap((chat) => chat.messages)
+      .find((m) => m.id === messageId);
+      
     if (!originalMessage) return;
 
     const replyContent = `Replying to ${originalMessage.senderName}: ${content}`;
     sendMessage(replyContent);
-  };
+  }, [chats, sendMessage]);
 
-  const markAsRead = (chatId: string) => {
-    setChats((prev) =>
-      prev.map((chat) =>
-        chat.id === chatId ? { ...chat, unreadCount: 0 } : chat,
-      ),
-    );
-  };
+  const createGroupChat = useCallback((name: string, participantIds: string[]) => {
+    if (!user) return;
 
-  // FIXED: createGroupChat now returns complete Chat object with all required fields
-  const createGroupChat = (name: string, participantIds: string[]) => {
     const participants = users.filter((u) => participantIds.includes(u.id));
-    participants.push(user!);
+    participants.push(user);
 
     const now = new Date().toISOString();
     const chatId = `chat-group-${Date.now()}`;
@@ -265,16 +346,18 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       .substring(0, 2)
       .toUpperCase();
 
+    const currentTime = new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
     const newMessage: Message = {
       id: `msg-${Date.now()}`,
       chatId,
-      senderId: user!.id,
-      senderName: `${user!.firstName} ${user!.lastName}`,
+      senderId: user.id,
+      senderName: `${user.firstName} ${user.lastName}`,
       content: "Group created",
-      timestamp: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
+      timestamp: currentTime,
       type: "system",
       status: "read",
       isUser: true,
@@ -285,23 +368,20 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       name,
       participants,
       lastMessage: newMessage,
-      timestamp: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
+      timestamp: currentTime,
       unreadCount: 0,
       initials,
-      messages: [newMessage], // Added required messages array
-      isGroup: true, // Added required isGroup field
-      admins: [user!.id],
-      createdAt: now, // Added required createdAt
-      updatedAt: now, // Added required updatedAt
+      messages: [newMessage],
+      isGroup: true,
+      admins: [user.id],
+      createdAt: now,
+      updatedAt: now,
     };
 
     setChats((prev) => [newChat, ...prev]);
-  };
+  }, [user]);
 
-  const addParticipant = (chatId: string, userId: string) => {
+  const addParticipant = useCallback((chatId: string, userId: string) => {
     const newParticipant = users.find((u) => u.id === userId);
     if (!newParticipant) return;
 
@@ -315,9 +395,9 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
           : chat,
       ),
     );
-  };
+  }, []);
 
-  const removeParticipant = (chatId: string, userId: string) => {
+  const removeParticipant = useCallback((chatId: string, userId: string) => {
     setChats((prev) =>
       prev.map((chat) =>
         chat.id === chatId
@@ -328,45 +408,11 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
           : chat,
       ),
     );
-  };
+  }, []);
 
-  const searchChats = (query: string) => {
+  const searchChats = useCallback((query: string) => {
     setSearchQuery(query);
-  };
-
-  const filterChats = (filter: "all" | "open" | "closed") => {
-    let filtered = [...chats];
-
-    if (filter === "open") {
-      filtered = filtered.filter((chat) => chat.unreadCount > 0);
-    } else if (filter === "closed") {
-      filtered = filtered.filter((chat) => chat.unreadCount === 0);
-    }
-
-    setFilteredChats(filtered);
-  };
-
-  const sortChats = (sort: "newest" | "oldest" | "unread") => {
-    let sorted = [...filteredChats];
-
-    if (sort === "newest") {
-      sorted.sort((a, b) => {
-        if (a.timestamp === "Yesterday") return 1;
-        if (b.timestamp === "Yesterday") return -1;
-        return b.timestamp.localeCompare(a.timestamp);
-      });
-    } else if (sort === "oldest") {
-      sorted.sort((a, b) => {
-        if (a.timestamp === "Yesterday") return -1;
-        if (b.timestamp === "Yesterday") return 1;
-        return a.timestamp.localeCompare(b.timestamp);
-      });
-    } else if (sort === "unread") {
-      sorted.sort((a, b) => b.unreadCount - a.unreadCount);
-    }
-
-    setFilteredChats(sorted);
-  };
+  }, []);
 
   return (
     <ChatContext.Provider

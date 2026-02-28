@@ -1,23 +1,13 @@
 // File: src/components/dashboard/ChatWindow.tsx
 "use client";
 
-import { useAuth } from "@/context/AuthContext";
+import React, { useState, useRef, useEffect } from "react";
 import { useChat } from "@/context/ChatContext";
+import { useAuth } from "@/context/AuthContext";
 import Image from "next/image";
-import React, { useEffect, useRef, useState } from "react";
 
 interface ChatWindowProps {
   onBack?: () => void;
-}
-
-// Define Participant interface
-interface Participant {
-  id: string;
-  name?: string;
-  firstName?: string;
-  lastName?: string;
-  avatar?: string;
-  status?: "online" | "offline" | "away";
 }
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
@@ -28,23 +18,21 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
 
   useEffect(() => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-      });
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
   }, [messages]);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !selectedChat) return;
+    
     sendMessage(newMessage);
     setNewMessage("");
   };
 
   const handleBack = () => {
     if (onBack) {
-      onBack(); // This will set mobileView back to 'chats'
+      onBack();
     }
   };
 
@@ -74,15 +62,14 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
     );
   }
 
-  // FIXED: Properly typed participant parameter
   const otherParticipant = selectedChat.participants.find(
-    (participant: Participant): boolean => participant.id !== user?.id,
+    (p) => p.id !== user?.id,
   );
 
   return (
     <div className="flex flex-col w-full h-full overflow-hidden bg-white">
       {/* Chat Header */}
-      <div className="flex-shrink-0 px-3 py-2 bg-white border-b border-gray-200">
+      <div className="shrink-0 px-3 py-2 bg-white border-b border-gray-200">
         <div className="flex items-center gap-2">
           {/* Back Button - Only on mobile */}
           <button
@@ -105,7 +92,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
             </svg>
           </button>
 
-          <div className="relative flex-shrink-0">
+          <div className="relative shrink-0">
             <div className="flex items-center justify-center w-8 h-8 overflow-hidden text-xs font-semibold text-white bg-blue-500 rounded-full">
               {otherParticipant?.avatar ? (
                 <Image
@@ -113,10 +100,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
                   alt={selectedChat.name}
                   width={32}
                   height={32}
-                  className="object-cover w-full h-full rounded-full"
+                  className="object-cover w-full h-full"
                 />
               ) : (
-                selectedChat.initials
+                <span>{selectedChat.initials}</span>
               )}
             </div>
             <span className="absolute bottom-0 right-0 w-2 h-2 bg-green-500 border-2 border-white rounded-full"></span>
@@ -141,13 +128,13 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
               className={`flex gap-2 ${isUser ? "justify-end" : ""}`}
             >
               {!isUser && (
-                <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-white text-[9px] font-semibold flex-shrink-0 overflow-hidden">
+                <div className="flex items-center justify-center w-5 h-5 text-[9px] font-semibold text-white bg-blue-500 rounded-full shrink-0 overflow-hidden">
                   {selectedChat.initials}
                 </div>
               )}
               <div className={`max-w-[70%] ${isUser ? "items-end" : ""}`}>
                 <div
-                  className={`p-2 rounded-lg text-xs break-words ${
+                  className={`p-2 text-xs wrap-break-word rounded-lg ${
                     isUser
                       ? "bg-blue-600 text-white"
                       : "bg-gray-100 text-gray-900"
@@ -169,7 +156,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
       </div>
 
       {/* Message Input */}
-      <div className="flex-shrink-0 p-2 bg-white border-t border-gray-200">
+      <div className="shrink-0 p-2 bg-white border-t border-gray-200">
         <form onSubmit={handleSendMessage} className="flex items-center gap-2">
           <input
             type="text"
@@ -181,7 +168,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onBack }) => {
           <button
             type="submit"
             disabled={!newMessage.trim()}
-            className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 disabled:opacity-50 flex-shrink-0"
+            className="px-3 py-1.5 text-xs text-white bg-blue-600 rounded-lg shrink-0 hover:bg-blue-700 disabled:opacity-50"
           >
             Send
           </button>
