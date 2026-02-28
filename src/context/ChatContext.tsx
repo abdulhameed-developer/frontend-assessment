@@ -1,10 +1,16 @@
 // File: src/context/ChatContext.tsx
-'use client';
+"use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Chat, Message, User } from '@/types';
-import { chats as initialChats, users, currentUser } from '@/data/dummyData';
-import { useAuth } from './AuthContext';
+import { chats as initialChats, users } from "@/data/dummyData";
+import { Chat, Message } from "@/types";
+import React, {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import { useAuth } from "./AuthContext";
 
 interface ChatContextType {
   chats: Chat[];
@@ -12,19 +18,24 @@ interface ChatContextType {
   selectedChat: Chat | null;
   messages: Message[];
   searchQuery: string;
-  filterType: 'all' | 'unread' | 'groups';
-  sortBy: 'recent' | 'unread' | 'alphabetical';
+  filterType: "all" | "unread" | "groups";
+  sortBy: "recent" | "unread" | "alphabetical";
   loading: boolean;
   setSelectedChat: (chat: Chat | null) => void;
-  sendMessage: (content: string, type?: 'text' | 'image' | 'file', attachments?: any[]) => void;
+  sendMessage: (
+    content: string,
+    type?: "text" | "image" | "file",
+    attachments?: any[],
+  ) => void;
   deleteMessage: (messageId: string) => void;
   editMessage: (messageId: string, newContent: string) => void;
   reactToMessage: (messageId: string, reaction: string) => void;
   replyToMessage: (messageId: string, content: string) => void;
   searchChats: (query: string) => void;
-  filterChats: (filter: 'all' | 'open' | 'closed') => void;
-  setFilterType: (filter: 'all' | 'unread' | 'groups') => void;
-  setSortBy: (sort: 'recent' | 'unread' | 'alphabetical') => void;
+  filterChats: (filter: "all" | "open" | "closed") => void;
+  sortChats: (sort: "newest" | "oldest" | "unread") => void;
+  setFilterType: (filter: "all" | "unread" | "groups") => void;
+  setSortBy: (sort: "recent" | "unread" | "alphabetical") => void;
   markAsRead: (chatId: string) => void;
   createGroupChat: (name: string, participantIds: string[]) => void;
   addParticipant: (chatId: string, userId: string) => void;
@@ -33,15 +44,21 @@ interface ChatContextType {
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
-export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const ChatProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const { user } = useAuth();
   const [chats, setChats] = useState<Chat[]>(initialChats);
   const [filteredChats, setFilteredChats] = useState<Chat[]>(initialChats);
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState<'all' | 'unread' | 'groups'>('all');
-  const [sortBy, setSortBy] = useState<'recent' | 'unread' | 'alphabetical'>('recent');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterType, setFilterType] = useState<"all" | "unread" | "groups">(
+    "all",
+  );
+  const [sortBy, setSortBy] = useState<"recent" | "unread" | "alphabetical">(
+    "recent",
+  );
   const [loading, setLoading] = useState(false);
 
   // Load messages when chat is selected
@@ -58,29 +75,32 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     // Apply search
     if (searchQuery) {
-      filtered = filtered.filter(chat =>
-        chat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        chat.lastMessage.content.toLowerCase().includes(searchQuery.toLowerCase())
+      filtered = filtered.filter(
+        (chat) =>
+          chat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          chat.lastMessage.content
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()),
       );
     }
 
     // Apply filters
-    if (filterType === 'unread') {
-      filtered = filtered.filter(chat => chat.unreadCount > 0);
-    } else if (filterType === 'groups') {
-      filtered = filtered.filter(chat => chat.isGroup);
+    if (filterType === "unread") {
+      filtered = filtered.filter((chat) => chat.unreadCount > 0);
+    } else if (filterType === "groups") {
+      filtered = filtered.filter((chat) => chat.isGroup);
     }
 
     // Apply sorting
-    if (sortBy === 'recent') {
+    if (sortBy === "recent") {
       filtered.sort((a, b) => {
-        if (a.timestamp === 'Yesterday') return 1;
-        if (b.timestamp === 'Yesterday') return -1;
+        if (a.timestamp === "Yesterday") return 1;
+        if (b.timestamp === "Yesterday") return -1;
         return b.timestamp.localeCompare(a.timestamp);
       });
-    } else if (sortBy === 'unread') {
+    } else if (sortBy === "unread") {
       filtered.sort((a, b) => b.unreadCount - a.unreadCount);
-    } else if (sortBy === 'alphabetical') {
+    } else if (sortBy === "alphabetical") {
       filtered.sort((a, b) => a.name.localeCompare(b.name));
     }
 
@@ -89,8 +109,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const sendMessage = async (
     content: string,
-    type: 'text' | 'image' | 'file' = 'text',
-    attachments: any[] = []
+    type: "text" | "image" | "file" = "text",
+    attachments: any[] = [],
   ) => {
     if (!selectedChat || !user || !content.trim()) return;
 
@@ -101,30 +121,36 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       senderName: `${user.firstName} ${user.lastName}`,
       senderAvatar: user.avatar,
       content,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
       type,
-      status: 'sent',
+      status: "sent",
       isUser: true,
-      attachments: attachments.length > 0 ? attachments : undefined
+      attachments: attachments.length > 0 ? attachments : undefined,
     };
 
-    setMessages(prev => [...prev, newMessage]);
+    setMessages((prev) => [...prev, newMessage]);
 
-    setChats(prev =>
-      prev.map(chat =>
+    setChats((prev) =>
+      prev.map((chat) =>
         chat.id === selectedChat.id
           ? {
               ...chat,
               lastMessage: {
                 ...newMessage,
-                content: content.length > 40 ? content.substring(0, 40) + '...' : content
+                content:
+                  content.length > 40
+                    ? content.substring(0, 40) + "..."
+                    : content,
               },
               timestamp: newMessage.timestamp,
               unreadCount: chat.unreadCount + 1,
-              messages: [...chat.messages, newMessage]
+              messages: [...chat.messages, newMessage],
             }
-          : chat
-      )
+          : chat,
+      ),
     );
 
     setTimeout(() => {
@@ -133,78 +159,84 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const simulateReply = (chatId: string) => {
-    const otherParticipant = selectedChat?.participants.find(p => p.id !== user?.id);
+    const otherParticipant = selectedChat?.participants.find(
+      (p) => p.id !== user?.id,
+    );
     if (!otherParticipant) return;
 
     const replyMessage: Message = {
       id: `msg-${Date.now()}-reply`,
       chatId,
       senderId: otherParticipant.id,
-      senderName: otherParticipant.firstName + ' ' + otherParticipant.lastName,
+      senderName: otherParticipant.firstName + " " + otherParticipant.lastName,
       senderAvatar: otherParticipant.avatar,
       content: "Thanks for your message! I'll get back to you soon.",
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      type: 'text',
-      status: 'delivered',
-      isUser: false
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      type: "text",
+      status: "delivered",
+      isUser: false,
     };
 
-    setMessages(prev => [...prev, replyMessage]);
-    setChats(prev =>
-      prev.map(chat =>
+    setMessages((prev) => [...prev, replyMessage]);
+    setChats((prev) =>
+      prev.map((chat) =>
         chat.id === chatId
           ? {
               ...chat,
               lastMessage: {
                 ...replyMessage,
-                content: replyMessage.content.length > 40 ? replyMessage.content.substring(0, 40) + '...' : replyMessage.content
+                content:
+                  replyMessage.content.length > 40
+                    ? replyMessage.content.substring(0, 40) + "..."
+                    : replyMessage.content,
               },
               timestamp: replyMessage.timestamp,
-              messages: [...chat.messages, replyMessage]
+              messages: [...chat.messages, replyMessage],
             }
-          : chat
-      )
+          : chat,
+      ),
     );
   };
 
   const deleteMessage = (messageId: string) => {
-    setMessages(prev => prev.filter(m => m.id !== messageId));
-    setChats(prev =>
-      prev.map(chat => ({
+    setMessages((prev) => prev.filter((m) => m.id !== messageId));
+    setChats((prev) =>
+      prev.map((chat) => ({
         ...chat,
-        messages: chat.messages.filter(m => m.id !== messageId)
-      }))
+        messages: chat.messages.filter((m) => m.id !== messageId),
+      })),
     );
   };
 
   const editMessage = (messageId: string, newContent: string) => {
-    setMessages(prev =>
-      prev.map(m =>
-        m.id === messageId ? { ...m, content: newContent } : m
-      )
+    setMessages((prev) =>
+      prev.map((m) => (m.id === messageId ? { ...m, content: newContent } : m)),
     );
   };
 
   const reactToMessage = (messageId: string, reaction: string) => {
     if (!user) return;
-    
-    setMessages(prev =>
-      prev.map(m =>
+
+    setMessages((prev) =>
+      prev.map((m) =>
         m.id === messageId
           ? {
               ...m,
               reactions: [
                 ...(m.reactions || []),
-                { userId: user.id, reaction }
-              ]
+                { userId: user.id, reaction },
+              ],
             }
-          : m
-      )
+          : m,
+      ),
     );
   };
 
   const replyToMessage = (messageId: string, content: string) => {
-    const originalMessage = messages.find(m => m.id === messageId);
+    const originalMessage = messages.find((m) => m.id === messageId);
     if (!originalMessage) return;
 
     const replyContent = `Replying to ${originalMessage.senderName}: ${content}`;
@@ -212,15 +244,15 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const markAsRead = (chatId: string) => {
-    setChats(prev =>
-      prev.map(chat =>
-        chat.id === chatId ? { ...chat, unreadCount: 0 } : chat
-      )
+    setChats((prev) =>
+      prev.map((chat) =>
+        chat.id === chatId ? { ...chat, unreadCount: 0 } : chat,
+      ),
     );
   };
 
   const createGroupChat = (name: string, participantIds: string[]) => {
-    const participants = users.filter(u => participantIds.includes(u.id));
+    const participants = users.filter((u) => participantIds.includes(u.id));
     participants.push(user!);
 
     const newChat: Chat = {
@@ -232,51 +264,56 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         chatId: `chat-group-${Date.now()}`,
         senderId: user!.id,
         senderName: `${user!.firstName} ${user!.lastName}`,
-        content: 'Group created',
-        timestamp: 'now',
-        type: 'system',
-        status: 'read',
-        isUser: true
+        content: "Group created",
+        timestamp: "now",
+        type: "system",
+        status: "read",
+        isUser: true,
       },
-      timestamp: 'now',
+      timestamp: "now",
       unreadCount: 0,
-      initials: name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase(),
+      initials: name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .substring(0, 2)
+        .toUpperCase(),
       messages: [],
       isGroup: true,
       admins: [user!.id],
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     };
 
-    setChats(prev => [newChat, ...prev]);
+    setChats((prev) => [newChat, ...prev]);
   };
 
   const addParticipant = (chatId: string, userId: string) => {
-    const newParticipant = users.find(u => u.id === userId);
+    const newParticipant = users.find((u) => u.id === userId);
     if (!newParticipant) return;
 
-    setChats(prev =>
-      prev.map(chat =>
+    setChats((prev) =>
+      prev.map((chat) =>
         chat.id === chatId
           ? {
               ...chat,
-              participants: [...chat.participants, newParticipant]
+              participants: [...chat.participants, newParticipant],
             }
-          : chat
-      )
+          : chat,
+      ),
     );
   };
 
   const removeParticipant = (chatId: string, userId: string) => {
-    setChats(prev =>
-      prev.map(chat =>
+    setChats((prev) =>
+      prev.map((chat) =>
         chat.id === chatId
           ? {
               ...chat,
-              participants: chat.participants.filter(p => p.id !== userId)
+              participants: chat.participants.filter((p) => p.id !== userId),
             }
-          : chat
-      )
+          : chat,
+      ),
     );
   };
 
@@ -284,43 +321,68 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setSearchQuery(query);
   };
 
-  const filterChats = (filter: 'all' | 'open' | 'closed') => {
+  const filterChats = (filter: "all" | "open" | "closed") => {
     let filtered = [...chats];
-    
-    if (filter === 'open') {
-      filtered = filtered.filter(chat => chat.unreadCount > 0);
-    } else if (filter === 'closed') {
-      filtered = filtered.filter(chat => chat.unreadCount === 0);
+
+    if (filter === "open") {
+      filtered = filtered.filter((chat) => chat.unreadCount > 0);
+    } else if (filter === "closed") {
+      filtered = filtered.filter((chat) => chat.unreadCount === 0);
     }
-    
+
     setFilteredChats(filtered);
   };
 
+  const sortChats = (sort: "newest" | "oldest" | "unread") => {
+    const sorted = [...filteredChats];
+
+    if (sort === "newest") {
+      sorted.sort((a, b) => {
+        if (a.timestamp === "Yesterday") return 1;
+        if (b.timestamp === "Yesterday") return -1;
+        return b.timestamp.localeCompare(a.timestamp);
+      });
+    } else if (sort === "oldest") {
+      sorted.sort((a, b) => {
+        if (a.timestamp === "Yesterday") return -1;
+        if (b.timestamp === "Yesterday") return 1;
+        return a.timestamp.localeCompare(b.timestamp);
+      });
+    } else if (sort === "unread") {
+      sorted.sort((a, b) => b.unreadCount - a.unreadCount);
+    }
+
+    setFilteredChats(sorted);
+  };
+
   return (
-    <ChatContext.Provider value={{
-      chats,
-      filteredChats,
-      selectedChat,
-      messages,
-      searchQuery,
-      filterType,
-      sortBy,
-      loading,
-      setSelectedChat,
-      sendMessage,
-      deleteMessage,
-      editMessage,
-      reactToMessage,
-      replyToMessage,
-      searchChats,
-      filterChats,
-      setFilterType,
-      setSortBy,
-      markAsRead,
-      createGroupChat,
-      addParticipant,
-      removeParticipant
-    }}>
+    <ChatContext.Provider
+      value={{
+        chats,
+        filteredChats,
+        selectedChat,
+        messages,
+        searchQuery,
+        filterType,
+        sortBy,
+        loading,
+        setSelectedChat,
+        sendMessage,
+        deleteMessage,
+        editMessage,
+        reactToMessage,
+        replyToMessage,
+        searchChats,
+        filterChats,
+        sortChats,
+        setFilterType,
+        setSortBy,
+        markAsRead,
+        createGroupChat,
+        addParticipant,
+        removeParticipant,
+      }}
+    >
       {children}
     </ChatContext.Provider>
   );
@@ -329,7 +391,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 export const useChat = () => {
   const context = useContext(ChatContext);
   if (context === undefined) {
-    throw new Error('useChat must be used within a ChatProvider');
+    throw new Error("useChat must be used within a ChatProvider");
   }
   return context;
 };

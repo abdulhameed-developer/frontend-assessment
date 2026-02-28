@@ -1,43 +1,161 @@
 // File: src/components/layout/MobileChatList.tsx
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { useChat } from '@/context/ChatContext';
-import { useAuth } from '@/context/AuthContext';
-import { channels } from '@/data/dummyData';
+import { useAuth } from "@/context/AuthContext";
+import { useChat } from "@/context/ChatContext";
+import { channels } from "@/data/dummyData";
+import React, { useEffect, useState } from "react";
 
 export const MobileChatList: React.FC = () => {
   const { user } = useAuth();
-  const { chats, setSelectedChat, searchChats } = useChat();
-  const [searchInput, setSearchInput] = useState('');
-  const [activeTab, setActiveTab] = useState<'all' | 'channels'>('all');
+  const { chats, setSelectedChat } = useChat();
+  const [searchInput, setSearchInput] = useState("");
+  const [activeTab, setActiveTab] = useState<"all" | "channels">("all");
+  const [filteredChats, setFilteredChats] = useState(chats);
+  const [filteredChannels, setFilteredChannels] = useState(channels);
+
+  // Filter chats based on search input
+  useEffect(() => {
+    if (searchInput.trim() === "") {
+      setFilteredChats(chats);
+      setFilteredChannels(channels);
+    } else {
+      // Filter chats
+      const chatResults = chats.filter(
+        (chat) =>
+          chat.name.toLowerCase().includes(searchInput.toLowerCase()) ||
+          chat.lastMessage.content
+            .toLowerCase()
+            .includes(searchInput.toLowerCase()),
+      );
+      setFilteredChats(chatResults);
+
+      // Filter channels
+      const channelResults = channels.filter((channel) =>
+        channel.name.toLowerCase().includes(searchInput.toLowerCase()),
+      );
+      setFilteredChannels(channelResults);
+    }
+  }, [searchInput, chats]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInput(e.target.value);
-    searchChats(e.target.value);
+  };
+
+  const clearSearch = () => {
+    setSearchInput("");
   };
 
   const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase();
   };
 
   const getAvatarColor = (name: string) => {
     const colors = [
-      'bg-blue-500', 'bg-purple-500', 'bg-pink-500', 
-      'bg-green-500', 'bg-yellow-500', 'bg-red-500'
+      "bg-blue-500",
+      "bg-purple-500",
+      "bg-pink-500",
+      "bg-green-500",
+      "bg-yellow-500",
+      "bg-red-500",
     ];
     const index = name.length % colors.length;
     return colors[index];
   };
 
+  // FIXED: Channel selection now creates proper channel chat
+  const handleChannelSelect = (
+    channelName: string,
+    channelColor: string,
+    unreadCount: number,
+  ) => {
+    // Try to find existing channel chat
+    let chat = chats.find(
+      (c) => c.name === channelName || c.name.includes(channelName),
+    );
+
+    // If no channel chat exists, create a proper channel chat
+    if (!chat) {
+      // Create channel-specific messages
+      const channelMessages = [
+        {
+          id: `channel-${Date.now()}-1`,
+          chatId: `channel-${channelName}-${Date.now()}`,
+          senderId: "system",
+          senderName: "System",
+          content: `Welcome to the ${channelName} channel!`,
+          timestamp: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          type: "system" as const,
+          status: "read" as const,
+          isUser: false,
+        },
+        {
+          id: `channel-${Date.now()}-2`,
+          chatId: `channel-${channelName}-${Date.now()}`,
+          senderId: "announcement",
+          senderName: "Announcements",
+          content: `This channel has ${unreadCount} new messages`,
+          timestamp: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          type: "text" as const,
+          status: "read" as const,
+          isUser: false,
+        },
+      ];
+
+      chat = {
+        id: `channel-${channelName}-${Date.now()}`,
+        name: channelName,
+        participants: [], // Channels don't have individual participants
+        lastMessage: {
+          id: `last-${Date.now()}`,
+          chatId: `channel-${channelName}-${Date.now()}`,
+          senderId: "system",
+          senderName: "System",
+          content: `Welcome to ${channelName}`,
+          timestamp: "now",
+          type: "system",
+          status: "read",
+          isUser: false,
+        },
+        timestamp: "now",
+        unreadCount: unreadCount,
+        initials: channelName
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .substring(0, 2)
+          .toUpperCase(),
+        messages: channelMessages,
+        isGroup: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+    }
+
+    if (chat) {
+      setSelectedChat(chat);
+    }
+  };
+
   return (
-    <div className="h-full bg-white">
-      {/* Header */}
-      <div className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-10">
+    <div className="w-full h-full bg-white">
+      {/* Header - Fixed at top */}
+      <div className="fixed top-0 left-0 right-0 z-20 bg-white border-b border-gray-200">
         <div className="px-4 py-3">
           <h1 className="text-xl font-semibold">Chats</h1>
         </div>
-        
+
         {/* Search Bar */}
         <div className="px-4 pb-3">
           <div className="relative">
@@ -45,112 +163,227 @@ export const MobileChatList: React.FC = () => {
               type="text"
               value={searchInput}
               onChange={handleSearch}
-              placeholder="Search chats..."
-              className="w-full pl-10 pr-4 py-2 bg-gray-100 rounded-lg text-sm"
+              placeholder="Search chats or channels..."
+              className="w-full pl-10 pr-10 py-2.5 bg-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
-            <svg className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            <svg
+              className="absolute w-4 h-4 text-gray-400 left-3 top-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
             </svg>
+            {searchInput && (
+              <button onClick={clearSearch} className="absolute right-3 top-3">
+                <svg
+                  className="w-4 h-4 text-gray-400 hover:text-gray-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            )}
           </div>
         </div>
 
         {/* Tabs */}
         <div className="flex px-4 border-b border-gray-200">
           <button
-            onClick={() => setActiveTab('all')}
-            className={`flex-1 py-2 text-sm font-medium ${
-              activeTab === 'all' 
-                ? 'text-blue-600 border-b-2 border-blue-600' 
-                : 'text-gray-500'
+            onClick={() => setActiveTab("all")}
+            className={`flex-1 py-3 text-sm font-medium relative ${
+              activeTab === "all" ? "text-blue-600" : "text-gray-500"
             }`}
           >
             All Chats
+            {activeTab === "all" && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600" />
+            )}
           </button>
           <button
-            onClick={() => setActiveTab('channels')}
-            className={`flex-1 py-2 text-sm font-medium ${
-              activeTab === 'channels' 
-                ? 'text-blue-600 border-b-2 border-blue-600' 
-                : 'text-gray-500'
+            onClick={() => setActiveTab("channels")}
+            className={`flex-1 py-3 text-sm font-medium relative ${
+              activeTab === "channels" ? "text-blue-600" : "text-gray-500"
             }`}
           >
             Channels
+            {activeTab === "channels" && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600" />
+            )}
           </button>
         </div>
+
+        {/* Search Results Count */}
+        {searchInput && (
+          <div className="px-4 py-2 border-b border-gray-200 bg-gray-50">
+            <p className="text-xs text-gray-500">
+              Found{" "}
+              {activeTab === "all"
+                ? filteredChats.length
+                : filteredChannels.length}{" "}
+              results
+            </p>
+          </div>
+        )}
       </div>
 
-      {/* Chat List */}
-      <div className="pt-32 pb-20">
-        {activeTab === 'all' ? (
+      {/* Chat List - Scrollable with padding for fixed header */}
+      <div className="min-h-screen pt-32 pb-24">
+        {activeTab === "all" ? (
           // All Chats View
-          <div className="divide-y divide-gray-100">
-            {chats.map((chat) => {
-              const otherParticipant = chat.participants.find(p => p.id !== user?.id);
-              const initials = getInitials(chat.name);
-              const avatarColor = getAvatarColor(chat.name);
+          filteredChats.length > 0 ? (
+            <div className="divide-y divide-gray-100">
+              {filteredChats.map((chat) => {
+                const otherParticipant = chat.participants.find(
+                  (p) => p.id !== user?.id,
+                );
+                const initials = getInitials(chat.name);
+                const avatarColor = getAvatarColor(chat.name);
 
-              return (
-                <div
-                  key={chat.id}
-                  onClick={() => setSelectedChat(chat)}
-                  className="flex items-center gap-3 px-4 py-3 active:bg-gray-50 cursor-pointer"
-                >
-                  <div className={`w-12 h-12 rounded-full ${avatarColor} flex items-center justify-center text-white font-semibold flex-shrink-0`}>
-                    {otherParticipant?.avatar ? (
-                      <img src={otherParticipant.avatar} alt={chat.name} className="w-full h-full rounded-full object-cover" />
-                    ) : (
-                      initials
+                return (
+                  <div
+                    key={chat.id}
+                    onClick={() => setSelectedChat(chat)}
+                    className="flex items-center gap-3 px-4 py-3 transition-colors cursor-pointer active:bg-gray-50"
+                  >
+                    <div
+                      className={`w-12 h-12 rounded-full ${avatarColor} flex items-center justify-center text-white font-semibold flex-shrink-0`}
+                    >
+                      {otherParticipant?.avatar ? (
+                        <img
+                          src={otherParticipant.avatar}
+                          alt={chat.name}
+                          className="object-cover w-full h-full rounded-full"
+                        />
+                      ) : (
+                        initials
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-medium text-gray-900 truncate">
+                          {chat.name}
+                        </h3>
+                        <span className="flex-shrink-0 ml-2 text-xs text-gray-500">
+                          {chat.timestamp}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-500 truncate mt-0.5">
+                        {chat.lastMessage.content}
+                      </p>
+                    </div>
+                    {chat.unreadCount > 0 && (
+                      <div className="flex items-center justify-center flex-shrink-0 w-5 h-5 ml-2 bg-blue-600 rounded-full">
+                        <span className="text-xs text-white">
+                          {chat.unreadCount}
+                        </span>
+                      </div>
                     )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-medium text-gray-900 truncate">{chat.name}</h3>
-                      <span className="text-xs text-gray-500">{chat.timestamp}</span>
-                    </div>
-                    <p className="text-sm text-gray-500 truncate">{chat.lastMessage.content}</p>
-                  </div>
-                  {chat.unreadCount > 0 && (
-                    <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center">
-                      <span className="text-xs text-white">{chat.unreadCount}</span>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          // Channels View
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-64 px-4">
+              <svg
+                className="w-16 h-16 mb-4 text-gray-300"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1}
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                />
+              </svg>
+              <p className="text-center text-gray-500">
+                No chats found matching "{searchInput}"
+              </p>
+              <button
+                onClick={clearSearch}
+                className="mt-4 text-sm font-medium text-blue-600"
+              >
+                Clear search
+              </button>
+            </div>
+          )
+        ) : // Channels View - FIXED: Now opens correct channel chat
+        filteredChannels.length > 0 ? (
           <div className="divide-y divide-gray-100">
-            {channels.map((channel) => (
+            {filteredChannels.map((channel) => (
               <div
                 key={channel.id}
-                onClick={() => {
-                  // Handle channel selection
-                  const channelChat = chats.find(c => c.name === channel.name) || {
-                    ...chats[0],
-                    id: `channel-${Date.now()}`,
-                    name: channel.name,
-                    initials: channel.name.substring(0, 2).toUpperCase(),
-                  };
-                  setSelectedChat(channelChat);
-                }}
-                className="flex items-center gap-3 px-4 py-3 active:bg-gray-50 cursor-pointer"
+                onClick={() =>
+                  handleChannelSelect(
+                    channel.name,
+                    channel.color,
+                    channel.unread,
+                  )
+                }
+                className="flex items-center gap-3 px-4 py-3 transition-colors cursor-pointer active:bg-gray-50"
               >
-                <div 
-                  className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold"
+                <div
+                  className="flex items-center justify-center w-12 h-12 font-semibold text-white rounded-full"
                   style={{ backgroundColor: channel.color }}
                 >
                   {channel.name.substring(0, 2).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-medium text-gray-900 truncate">{channel.name}</h3>
-                    <span className="text-xs text-gray-500">{channel.unread} new</span>
+                    <h3 className="font-medium text-gray-900 truncate">
+                      {channel.name}
+                    </h3>
+                    <span className="flex-shrink-0 ml-2 text-xs text-gray-500">
+                      {channel.unread} new
+                    </span>
                   </div>
-                  <p className="text-sm text-gray-500 truncate">Channel • {channel.unread} unread messages</p>
+                  <p className="text-sm text-gray-500 truncate mt-0.5">
+                    {channel.unread > 0
+                      ? `${channel.unread} unread message${channel.unread > 1 ? "s" : ""} in this channel`
+                      : "No unread messages"}
+                  </p>
                 </div>
               </div>
             ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-64 px-4">
+            <svg
+              className="w-16 h-16 mb-4 text-gray-300"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1}
+                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+              />
+            </svg>
+            <p className="text-center text-gray-500">
+              No channels found matching "{searchInput}"
+            </p>
+            <button
+              onClick={clearSearch}
+              className="mt-4 text-sm font-medium text-blue-600"
+            >
+              Clear search
+            </button>
           </div>
         )}
       </div>
