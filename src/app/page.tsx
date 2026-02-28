@@ -42,19 +42,19 @@ export default function Home() {
 
   // EXACT FIXED DIMENSIONS - NO FLEX, NO AUTO
   const containerStyle = {
-    height: "609.82px",
+    height: "90vh",
     // margin: "0 auto",
     display: "flex",
     position: "relative" as const,
-    top: "80px",
+    top: "8vh",
   };
 
   const firstColStyle = {
     width: "168.42px",
-    height: "609.82px",
+    height: "90vh",
     borderTopLeftRadius: "11.23px",
     borderBottomLeftRadius: "11.23px",
-    borderBottomWidth: "0.7px",
+    // borderBottomWidth: "0.7px",
     overflow: "hidden" as const,
     backgroundColor: "#FFFFFF",
     flexShrink: 0,
@@ -62,7 +62,7 @@ export default function Home() {
 
   const secondColStyle = {
     width: "249.12px",
-    height: "609.82px",
+    height: "90vh",
     borderTopRightRadius: "8.42px",
     borderBottomRightRadius: "8.42px",
     borderLeftWidth: "0.7px",
@@ -74,7 +74,7 @@ export default function Home() {
 
   const thirdColStyle = {
     width: "464.56px",
-    height: "609.82px",
+    height: "90vh",
     borderRadius: "8.42px",
     overflow: "hidden" as const,
     backgroundColor: "#FFFFFF",
@@ -84,7 +84,7 @@ export default function Home() {
 
   const fourthColStyle = {
     width: "294.04px",
-    height: "609.82px",
+    height: "90vh",
     borderRadius: "8.42px",
     gap: "7.02px",
     overflow: "hidden" as const,

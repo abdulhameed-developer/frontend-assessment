@@ -224,7 +224,7 @@ export const DetailsPanel: React.FC = () => {
               <div className="absolute left-2 top-2 bottom-2 w-0.5 bg-gray-200" />
               {activityItems.map((item) => (
                 <div key={item.id} className="relative">
-                  <div className="absolute left-[-16px] top-1 w-2 h-2 rounded-full bg-blue-500" />
+                  <div className="absolute -left-4.5 top-1 w-2 h-2 rounded-full bg-blue-500" />
                   <div className="p-3 rounded-lg bg-gray-50">
                     <p className="font-sf-compact-regular text-[10.73px] text-gray-900">{item.content}</p>
                     <div className="flex items-center justify-between mt-1">

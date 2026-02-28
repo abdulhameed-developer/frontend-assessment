@@ -107,7 +107,7 @@ export const Header: React.FC = () => {
 
   return (
     <>
-      <header className="fixed z-50 w-full top-5">
+      <header className="fixed z-50 w-full top-1">
         <div className="w-full lg:w-[1188.77px] lg:mx-auto px-4 lg:px-0">
           {/* Main Header Container - Exact dimensions */}
           <div 
