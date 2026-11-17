@@ -9,8 +9,14 @@ import { ContactProvider } from "@/context/ContactContext";;
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "BOXpad - Inbox Dashboard",
-  description: "Professional Inbox Management Dashboard",
+  title: "BOXpad | Next.js Chat Dashboard Demo",
+  description: "Explore BOXpad, a responsive chat dashboard demo by Abdul Hameed with messaging, contacts, and user settings.",
+  openGraph: {
+    title: "BOXpad | Next.js Chat Dashboard Demo",
+    description: "A responsive chat dashboard demo by Abdul Hameed.",
+    url: "https://my-frontend-assessment.vercel.app/",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
